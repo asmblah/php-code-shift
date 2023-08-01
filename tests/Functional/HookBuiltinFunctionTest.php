@@ -21,8 +21,6 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 /**
  * Class HookBuiltinFunctionTest.
  *
- * Base class for all test cases.
- *
  * @author Dan Phillimore <dan@ovms.co>
  */
 class HookBuiltinFunctionTest extends AbstractTestCase
@@ -38,7 +36,13 @@ class HookBuiltinFunctionTest extends AbstractTestCase
                 'substr',
                 function (callable $originalSubstr) {
                     return function (string $string, int $offset, ?int $length = null) use ($originalSubstr) {
-                        return '[substr<' . $originalSubstr($string, $offset, $length) . '>]';
+                        $originalResult = $originalSubstr($string, $offset, $length);
+
+                        if ($string === 'my string' || $string === 'your string' || $string === 'hello') {
+                            return '[substr<' . $originalResult . '>]';
+                        }
+
+                        return $originalResult;
                     };
                 }
             ),
@@ -51,9 +55,16 @@ class HookBuiltinFunctionTest extends AbstractTestCase
         $this->codeShift->uninstall();
     }
 
-    public function testCanHookBuiltinFunctionInModuleRoot(): void
+    public function testCanHookBuiltinFunctionInModuleRootWhenInGlobalNamespace(): void
     {
-        $result = include __DIR__ . '/Fixtures/substr_module_root_test.php';
+        $result = include __DIR__ . '/Fixtures/substr_module_root_global_namespace_test.php';
+
+        static::assertSame('[substr<y st>] and [substr<ou>]', $result);
+    }
+
+    public function testCanHookBuiltinFunctionInModuleRootWhenInsideNamespace(): void
+    {
+        $result = include __DIR__ . '/Fixtures/substr_module_root_namespace_test.php';
 
         static::assertSame('[substr<y st>] and [substr<ou>]', $result);
     }

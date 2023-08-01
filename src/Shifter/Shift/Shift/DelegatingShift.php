@@ -27,6 +27,7 @@ use InvalidArgumentException;
 class DelegatingShift implements DelegatingShiftInterface
 {
     private array $shiftSpecFqcnToShifterCallable = [];
+    private bool $shifting = false;
 
     /**
      * @inheritDoc
@@ -51,6 +52,18 @@ class DelegatingShift implements DelegatingShiftInterface
             );
         }
 
-        return $this->shiftSpecFqcnToShifterCallable[$shiftSpec::class]($shiftSpec, $contents);
+        if ($this->shifting) {
+            // Don't attempt to perform shifts while we're already in the process
+            // of shifting a file, to prevent recursion.
+            return $contents;
+        }
+
+        $this->shifting = true;
+
+        try {
+            return $this->shiftSpecFqcnToShifterCallable[$shiftSpec::class]($shiftSpec, $contents);
+        } finally {
+            $this->shifting = false;
+        }
     }
 }

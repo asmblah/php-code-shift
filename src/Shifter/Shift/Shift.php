@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift;
 
+use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
@@ -29,6 +30,7 @@ class Shift implements ShiftInterface
     public function __construct(
         private readonly DelegatingShiftInterface $delegatingShift,
         private readonly ShiftSpecInterface $shiftSpec,
+        private readonly DenyListInterface $denyList,
         private readonly FileFilterInterface $fileFilter
     ) {
     }
@@ -38,6 +40,11 @@ class Shift implements ShiftInterface
      */
     public function appliesTo(string $path): bool
     {
+        if ($this->denyList->fileMatches($path)) {
+            // Never apply shifts to files in the deny list.
+            return false;
+        }
+
         return $this->fileFilter->fileMatches($path);
     }
 

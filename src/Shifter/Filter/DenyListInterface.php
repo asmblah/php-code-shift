@@ -14,16 +14,16 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Filter;
 
 /**
- * Interface FileFilterInterface.
+ * Class DenyList.
  *
- * Specifies which files a shift should be applied to.
+ * Specifies which files should never be transpiled.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface FileFilterInterface
+interface DenyListInterface extends FileFilterInterface
 {
     /**
-     * Determines whether the given file path matches this filter.
+     * Adds a new filter for files that should never be transpiled.
      */
-    public function fileMatches(string $path): bool;
+    public function addFilter(FileFilterInterface $filter): void;
 }

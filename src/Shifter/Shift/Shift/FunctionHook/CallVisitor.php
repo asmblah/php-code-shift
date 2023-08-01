@@ -40,12 +40,13 @@ class CallVisitor extends NodeVisitorAbstract
     public function enterNode(Node $node) {
         if (
             $node instanceof FuncCall &&
+            $node->name instanceof Name &&
             $node->name->toCodeString() === $this->shiftSpec->getFunctionName()
         ) {
             $this->modified = true;
 
             return new StaticCall(
-                new Name(Invoker::class),
+                new Name('\\' . Invoker::class),
                 $this->shiftSpec->getFunctionName(),
                 $node->args
             );

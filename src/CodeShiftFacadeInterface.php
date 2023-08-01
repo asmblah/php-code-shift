@@ -27,6 +27,11 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 interface CodeShiftFacadeInterface
 {
     /**
+     * Adds a filter for paths that should never be transpiled.
+     */
+    public function deny(FileFilterInterface $filter): void;
+
+    /**
      * Registers the given type of shift.
      */
     public function registerShiftType(ShiftTypeInterface $shiftType): void;

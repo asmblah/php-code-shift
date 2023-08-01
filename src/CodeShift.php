@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
+use Asmblah\PhpCodeShift\Shifter\Filter\DenyList;
+use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
+use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
@@ -36,12 +39,21 @@ use PhpParser\PrettyPrinter\Standard;
 class CodeShift implements CodeShiftFacadeInterface
 {
     private DelegatingShiftInterface $delegatingShift;
+    private DenyListInterface $denyList;
     private ShifterInterface $shifter;
 
     public function __construct(
+        ?DenyListInterface $denyList = null,
         ?DelegatingShiftInterface $delegatingShift = null,
         ?ShifterInterface $shifter = null
     ) {
+        if ($denyList === null) {
+            $denyList = new DenyList();
+
+            // Never transpile the source of PHP Code Shift itself.
+            $denyList->addFilter(new FileFilter(realpath(__DIR__ . '/..') . '/src/**'));
+        }
+
         if ($delegatingShift === null) {
             $delegatingShift = new DelegatingShift();
 
@@ -55,7 +67,16 @@ class CodeShift implements CodeShiftFacadeInterface
         }
 
         $this->delegatingShift = $delegatingShift;
+        $this->denyList = $denyList;
         $this->shifter = $shifter ?? new Shifter(new ShiftCollection());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function deny(FileFilterInterface $filter): void
+    {
+        $this->denyList->addFilter($filter);
     }
 
     /**
@@ -71,7 +92,14 @@ class CodeShift implements CodeShiftFacadeInterface
      */
     public function shift(ShiftSpecInterface $shiftSpec, FileFilterInterface $fileFilter): void
     {
-        $this->shifter->addShift(new Shift($this->delegatingShift, $shiftSpec, $fileFilter));
+        $this->shifter->addShift(
+            new Shift(
+                $this->delegatingShift,
+                $shiftSpec,
+                $this->denyList,
+                $fileFilter
+            )
+        );
 
         if (!$this->shifter->isInstalled()) {
             $this->shifter->install();
