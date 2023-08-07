@@ -58,7 +58,7 @@ class StreamWrapper
         return true;
     }
 
-    public function dir_readdir(): string
+    public function dir_readdir(): string|false
     {
         return readdir($this->wrappedResource);
     }
