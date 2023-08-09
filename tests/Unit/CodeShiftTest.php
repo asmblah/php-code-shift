@@ -49,7 +49,9 @@ class CodeShiftTest extends AbstractTestCase
     public function setUp(): void
     {
         $this->delegatingShift = mock(DelegatingShiftInterface::class);
-        $this->denyList = mock(DenyListInterface::class);
+        $this->denyList = mock(DenyListInterface::class, [
+            'fileMatches' => false,
+        ]);
         $this->shifter = mock(ShifterInterface::class, [
             'addShift' => null,
             'install' => null,
@@ -122,6 +124,20 @@ class CodeShiftTest extends AbstractTestCase
             ->never();
 
         $this->codeShift->shift($shiftSpec, $filter);
+    }
+
+    public function testShiftUsesWildcardPhpExtensionIfNotSpecified(): void
+    {
+        $shiftSpec = mock(ShiftSpecInterface::class);
+
+        $this->shifter->expects()
+            ->addShift(Mockery::type(Shift::class))
+            ->once()
+            ->andReturnUsing(function (Shift $shift) {
+                static::assertTrue($shift->appliesTo('/blah/blah/blah.php'));
+            });
+
+        $this->codeShift->shift($shiftSpec);
     }
 
     public function testUninstallUninstallsTheShifter(): void

@@ -11,10 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Shift\Spec;
+namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Hook\FunctionHooks;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
+use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 
 /**
  * Class FunctionHookShiftSpec.
@@ -52,14 +52,6 @@ class FunctionHookShiftSpec implements ShiftSpecInterface
     public function getReplacementProvider(): callable
     {
         return $this->replacementProvider;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getShiftFqcn(): string
-    {
-        return FunctionHookShiftType::class;
     }
 
     /**

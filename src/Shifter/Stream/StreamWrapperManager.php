@@ -11,11 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Native;
+namespace Asmblah\PhpCodeShift\Shifter\Stream;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSet;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandler;
+use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandlerInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
 use SplObjectStorage;
 
 /**
@@ -31,13 +34,13 @@ class StreamWrapperManager
     /**
      * @var SplObjectStorage<ShiftCollectionInterface>|null
      */
-    private static ?SplObjectStorage $shiftCollections = null;
+    private static ?SplObjectStorage $shiftCollections;
+    private static ?StreamHandlerInterface $streamHandler;
 
     public static function init(): void
     {
-        if (static::$shiftCollections === null) {
-            static::$shiftCollections = new SplObjectStorage();
-        }
+        static::$shiftCollections = new SplObjectStorage();
+        static::$streamHandler = new StreamHandler();
     }
 
     public static function getShiftSetForPath(string $path): ?ShiftSetInterface
@@ -57,14 +60,29 @@ class StreamWrapperManager
             null;
     }
 
+    /**
+     * Fetches the StreamHandler that the StreamWrapper uses.
+     */
+    public static function getStreamHandler(): StreamHandlerInterface
+    {
+        return static::$streamHandler;
+    }
+
     public static function installShiftCollection(ShiftCollectionInterface $shiftCollection): void
     {
         static::$shiftCollections->attach($shiftCollection);
 
         if (count(static::$shiftCollections) === 1) {
-            stream_wrapper_unregister(StreamWrapper::PROTOCOL);
-            stream_wrapper_register(StreamWrapper::PROTOCOL, StreamWrapper::class);
+            StreamWrapper::register();
         }
+    }
+
+    /**
+     * Installs a new StreamHandler to be used for new streams created after this point.
+     */
+    public static function setStreamHandler(StreamHandlerInterface $streamHandler): void
+    {
+        static::$streamHandler = $streamHandler;
     }
 
     public static function uninstallShiftCollection(ShiftCollectionInterface $shiftCollection): void
@@ -72,8 +90,7 @@ class StreamWrapperManager
         static::$shiftCollections->detach($shiftCollection);
 
         if (count(static::$shiftCollections) === 0) {
-            stream_wrapper_unregister(StreamWrapper::PROTOCOL);
-            stream_wrapper_restore(StreamWrapper::PROTOCOL);
+            StreamWrapper::unregister();
         }
     }
 }

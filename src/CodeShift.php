@@ -22,6 +22,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
@@ -64,6 +65,7 @@ class CodeShift implements CodeShiftFacadeInterface
                     new Standard()
                 )
             );
+            $delegatingShift->registerShiftType(new StringShiftType());
         }
 
         $this->delegatingShift = $delegatingShift;
@@ -90,8 +92,10 @@ class CodeShift implements CodeShiftFacadeInterface
     /**
      * @inheritDoc
      */
-    public function shift(ShiftSpecInterface $shiftSpec, FileFilterInterface $fileFilter): void
+    public function shift(ShiftSpecInterface $shiftSpec, ?FileFilterInterface $fileFilter = null): void
     {
+        $fileFilter ??= new FileFilter('*.php');
+
         $this->shifter->addShift(
             new Shift(
                 $this->delegatingShift,

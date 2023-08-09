@@ -23,13 +23,6 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Spec;
 interface ShiftSpecInterface
 {
     /**
-     * Fetches the FQCN of the shift to apply.
-     *
-     * @return string
-     */
-    public function getShiftFqcn(): string;
-
-    /**
      * Performs any initialisation needed for the shift.
      */
     public function init(): void;

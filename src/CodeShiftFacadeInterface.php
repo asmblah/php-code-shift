@@ -39,7 +39,7 @@ interface CodeShiftFacadeInterface
     /**
      * Adds the specified shift to be applied when applicable.
      */
-    public function shift(ShiftSpecInterface $shiftSpec, FileFilterInterface $fileFilter): void;
+    public function shift(ShiftSpecInterface $shiftSpec, ?FileFilterInterface $fileFilter = null): void;
 
     /**
      * Uninstalls all shifts registered by this CodeShift instance.

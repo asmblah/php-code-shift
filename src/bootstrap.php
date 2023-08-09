@@ -11,6 +11,6 @@
 
 declare(strict_types=1);
 
-use Asmblah\PhpCodeShift\Shifter\Native\StreamWrapperManager;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 
 StreamWrapperManager::init();

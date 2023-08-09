@@ -13,17 +13,30 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Filter;
 
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
+
 /**
  * Class FileFilter.
  *
  * Specifies which files a shift should be applied to with a glob pattern.
+ * Checks against all supported protocols plus the empty protocol.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
 class FileFilter implements FileFilterInterface
 {
-    public function __construct(private readonly string $pattern)
+    /**
+     * @var string[]
+     */
+    private array $patterns;
+
+    public function __construct(string $pattern)
     {
+        foreach (StreamWrapper::PROTOCOLS as $protocol) {
+            $this->patterns[] = $protocol . '://' . $pattern;
+        }
+
+        $this->patterns[] = $pattern;
     }
 
     /**
@@ -31,6 +44,12 @@ class FileFilter implements FileFilterInterface
      */
     public function fileMatches(string $path): bool
     {
-        return fnmatch($this->pattern, $path);
+        foreach ($this->patterns as $pattern) {
+            if (fnmatch($pattern, $path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

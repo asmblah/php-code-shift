@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Hook\Invoker;
-use Asmblah\PhpCodeShift\Shifter\Shift\Spec\FunctionHookShiftSpec;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\StaticCall;

@@ -17,12 +17,13 @@ $ composer install asmblah/php-code-shift
 ### Hooking built-in functions
 
 `runner.php`
+
 ```php
 <?php
 
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Spec\FunctionHookShiftSpec;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftSpec;
 
 require_once __DIR__ . '/vendor/autoload.php';
 

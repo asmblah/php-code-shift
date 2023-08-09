@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter;
 
-use Asmblah\PhpCodeShift\Shifter\Native\StreamWrapperManager;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 
 /**
  * Class Shifter.

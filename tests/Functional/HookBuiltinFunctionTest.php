@@ -15,7 +15,7 @@ namespace Asmblah\PhpCodeShift\Tests\Functional;
 
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Spec\FunctionHookShiftSpec;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 
 /**
@@ -67,5 +67,14 @@ class HookBuiltinFunctionTest extends AbstractTestCase
         $result = include __DIR__ . '/Fixtures/substr_module_root_namespace_test.php';
 
         static::assertSame('[substr<y st>] and [substr<ou>]', $result);
+    }
+
+    public function testCanHookBuiltinFunctionInPhar(): void
+    {
+        ob_start();
+        include __DIR__ . '/Fixtures/phar/substr_in_phar.phar';
+        $result = ob_get_clean();
+
+        static::assertSame('[before] [substr<ll>] [after]', $result);
     }
 }

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Spec\FunctionHookShiftSpec;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\PrettyPrinterAbstract;
