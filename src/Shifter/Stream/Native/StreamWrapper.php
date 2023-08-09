@@ -152,6 +152,11 @@ class StreamWrapper
             return false;
         }
 
+        if ($operation === 0) {
+            // Handle weird scenario where invalid operation is passed.
+            $operation = LOCK_EX;
+        }
+
         return $this->streamHandler->streamLock($this->wrappedResource, $operation);
     }
 
