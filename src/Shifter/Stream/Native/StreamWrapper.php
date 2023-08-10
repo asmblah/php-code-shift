@@ -295,8 +295,8 @@ class StreamWrapper implements StreamWrapperInterface
     public static function unregister(): void
     {
         foreach (static::PROTOCOLS as $protocol) {
-            stream_wrapper_unregister($protocol);
-            stream_wrapper_restore($protocol);
+            // Suppress notice "stream_wrapper_restore(): file:// was never changed, nothing to restore".
+            @stream_wrapper_restore($protocol);
         }
     }
 
