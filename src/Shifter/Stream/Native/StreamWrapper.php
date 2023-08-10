@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Native;
 
+use Asmblah\PhpCodeShift\Exception\NoWrappedResourceAvailableException;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandlerInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 
@@ -23,14 +24,15 @@ use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StreamWrapper
+class StreamWrapper implements StreamWrapperInterface
 {
     public const PROTOCOLS = ['file', 'phar'];
 
     /**
-     * @var resource
+     * @var resource|null
      */
-    public $context;
+    public $context = null;
+    private ?string $path = null;
     private StreamHandlerInterface $streamHandler;
     /**
      * @var resource|null
@@ -48,14 +50,20 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->closeDir($this->wrappedResource);
+        $result = $this->streamHandler->closeDir($this);
+
+        $this->path = null;
+        $this->wrappedResource = null;
+
+        return $result;
     }
 
     public function dir_opendir(string $path, int $options): bool
     {
-        $result = $this->streamHandler->openDir($this->context, $path, $options);
+        $result = $this->streamHandler->openDir($this, $path, $options);
 
         if ($result !== null) {
+            $this->path = $path;
             $this->wrappedResource = $result;
 
             return true;
@@ -70,7 +78,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->readDir($this->wrappedResource);
+        return $this->streamHandler->readDir($this);
     }
 
     public function dir_rewinddir(): bool
@@ -79,12 +87,44 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->rewindDir($this->wrappedResource);
+        return $this->streamHandler->rewindDir($this);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOpenPath(): string
+    {
+        if ($this->path === null) {
+            throw new NoWrappedResourceAvailableException();
+        }
+
+        return $this->path;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getWrappedResource()
+    {
+        if ($this->wrappedResource === null) {
+            throw new NoWrappedResourceAvailableException();
+        }
+
+        return $this->wrappedResource;
     }
 
     public function mkdir(string $path, int $mode, int $options): bool
     {
-        return $this->streamHandler->mkdir($this->context, $path, $mode, $options);
+        return $this->streamHandler->mkdir($this, $path, $mode, $options);
     }
 
     public static function register(): void
@@ -97,12 +137,12 @@ class StreamWrapper
 
     public function rename(string $fromPath, string $toPath): bool
     {
-        return $this->streamHandler->rename($this->context, $fromPath, $toPath);
+        return $this->streamHandler->rename($this, $fromPath, $toPath);
     }
 
     public function rmdir(string $path, int $options): bool
     {
-        return $this->streamHandler->rmdir($this->context, $path, $options);
+        return $this->streamHandler->rmdir($this, $path, $options);
     }
 
     /**
@@ -114,7 +154,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamCast($this->wrappedResource, $cast_as);
+        return $this->streamHandler->streamCast($this, $cast_as);
     }
 
     public function stream_close(): void
@@ -123,8 +163,9 @@ class StreamWrapper
             return;
         }
 
-        $this->streamHandler->streamClose($this->wrappedResource);
+        $this->streamHandler->streamClose($this);
 
+        $this->path = null;
         $this->wrappedResource = null;
     }
 
@@ -134,7 +175,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamEof($this->wrappedResource);
+        return $this->streamHandler->streamEof($this);
     }
 
     public function stream_flush(): bool
@@ -143,7 +184,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamFlush($this->wrappedResource);
+        return $this->streamHandler->streamFlush($this);
     }
 
     public function stream_lock(int $operation): bool
@@ -157,7 +198,7 @@ class StreamWrapper
             $operation = LOCK_EX;
         }
 
-        return $this->streamHandler->streamLock($this->wrappedResource, $operation);
+        return $this->streamHandler->streamLock($this, $operation);
     }
 
     public function stream_metadata(string $path, int $option, mixed $value): bool
@@ -171,9 +212,10 @@ class StreamWrapper
         int $options,
         ?string &$openedPath
     ): bool {
-        $result = $this->streamHandler->streamOpen($this->context, $path, $mode, $options, $openedPath);
+        $result = $this->streamHandler->streamOpen($this, $path, $mode, $options, $openedPath);
 
         if ($result !== null) {
+            $this->path = $path;
             $this->wrappedResource = $result;
 
             return true;
@@ -188,7 +230,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamRead($this->wrappedResource, $count);
+        return $this->streamHandler->streamRead($this, $count);
     }
 
     public function stream_seek(int $offset, int $whence = SEEK_SET): bool
@@ -197,7 +239,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamSeek($this->wrappedResource, $offset, $whence);
+        return $this->streamHandler->streamSeek($this, $offset, $whence);
     }
 
     public function stream_set_option(int $option, int $arg1, int $arg2): bool
@@ -206,7 +248,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamSetOption($this->wrappedResource, $option, $arg1, $arg2);
+        return $this->streamHandler->streamSetOption($this, $option, $arg1, $arg2);
     }
 
     public function stream_stat(): array|false
@@ -215,7 +257,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamStat($this->wrappedResource);
+        return $this->streamHandler->streamStat($this);
     }
 
     public function stream_tell(): int|false
@@ -224,7 +266,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamTell($this->wrappedResource);
+        return $this->streamHandler->streamTell($this);
     }
 
     public function stream_truncate(int $newSize): bool
@@ -233,7 +275,7 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamTruncate($this->wrappedResource, $newSize);
+        return $this->streamHandler->streamTruncate($this, $newSize);
     }
 
     public function stream_write(string $data): int|false
@@ -242,12 +284,12 @@ class StreamWrapper
             return false;
         }
 
-        return $this->streamHandler->streamWrite($this->wrappedResource, $data);
+        return $this->streamHandler->streamWrite($this, $data);
     }
 
     public function unlink(string $path): bool
     {
-        return $this->streamHandler->unlink($this->context, $path);
+        return $this->streamHandler->unlink($this, $path);
     }
 
     public static function unregister(): void

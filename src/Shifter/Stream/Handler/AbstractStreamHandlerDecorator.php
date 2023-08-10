@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
+
 /**
  * Class AbstractStreamHandlerDecorator.
  *
@@ -30,97 +32,97 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function closeDir($wrappedResource): bool
+    public function closeDir(StreamWrapperInterface $streamWrapper): bool
     {
-        return $this->wrappedStreamHandler->closeDir($wrappedResource);
+        return $this->wrappedStreamHandler->closeDir($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function openDir($context, string $path, int $options)
+    public function openDir(StreamWrapperInterface $streamWrapper, string $path, int $options)
     {
-        return $this->wrappedStreamHandler->openDir($context, $path, $options);
+        return $this->wrappedStreamHandler->openDir($streamWrapper, $path, $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function readDir($wrappedResource): string|false
+    public function readDir(StreamWrapperInterface $streamWrapper): string|false
     {
-        return $this->wrappedStreamHandler->readDir($wrappedResource);
+        return $this->wrappedStreamHandler->readDir($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function rewindDir($wrappedResource): bool
+    public function rewindDir(StreamWrapperInterface $streamWrapper): bool
     {
-        return $this->wrappedStreamHandler->rewindDir($wrappedResource);
+        return $this->wrappedStreamHandler->rewindDir($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function mkdir($context, string $path, int $mode, int $options): bool
+    public function mkdir(StreamWrapperInterface $streamWrapper, string $path, int $mode, int $options): bool
     {
-        return $this->wrappedStreamHandler->mkdir($context, $path, $mode, $options);
+        return $this->wrappedStreamHandler->mkdir($streamWrapper, $path, $mode, $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function rename($context, string $fromPath, string $toPath): bool
+    public function rename(StreamWrapperInterface $streamWrapper, string $fromPath, string $toPath): bool
     {
-        return $this->wrappedStreamHandler->rename($context, $fromPath, $toPath);
+        return $this->wrappedStreamHandler->rename($streamWrapper, $fromPath, $toPath);
     }
 
     /**
      * @inheritDoc
      */
-    public function rmdir($context, string $path, int $options): bool
+    public function rmdir(StreamWrapperInterface $streamWrapper, string $path, int $options): bool
     {
-        return $this->wrappedStreamHandler->rmdir($context, $path, $options);
+        return $this->wrappedStreamHandler->rmdir($streamWrapper, $path, $options);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamCast($wrappedResource, int $castAs)
+    public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs)
     {
-        return $this->wrappedStreamHandler->streamCast($wrappedResource, $castAs);
+        return $this->wrappedStreamHandler->streamCast($streamWrapper, $castAs);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamClose($wrappedResource): void
+    public function streamClose(StreamWrapperInterface $streamWrapper): void
     {
-        $this->wrappedStreamHandler->streamClose($wrappedResource);
+        $this->wrappedStreamHandler->streamClose($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamEof($wrappedResource): bool
+    public function streamEof(StreamWrapperInterface $streamWrapper): bool
     {
-        return $this->wrappedStreamHandler->streamEof($wrappedResource);
+        return $this->wrappedStreamHandler->streamEof($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamFlush($wrappedResource): bool
+    public function streamFlush(StreamWrapperInterface $streamWrapper): bool
     {
-        return $this->wrappedStreamHandler->streamFlush($wrappedResource);
+        return $this->wrappedStreamHandler->streamFlush($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamLock($wrappedResource, int $operation): bool
+    public function streamLock(StreamWrapperInterface $streamWrapper, int $operation): bool
     {
-        return $this->wrappedStreamHandler->streamLock($wrappedResource, $operation);
+        return $this->wrappedStreamHandler->streamLock($streamWrapper, $operation);
     }
 
     /**
@@ -135,77 +137,77 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
      * @inheritDoc
      */
     public function streamOpen(
-        $context,
+        StreamWrapperInterface $streamWrapper,
         string $path,
         string $mode,
         int $options,
         ?string &$openedPath
     ) {
-        return $this->wrappedStreamHandler->streamOpen($context, $path, $mode, $options, $openedPath);
+        return $this->wrappedStreamHandler->streamOpen($streamWrapper, $path, $mode, $options, $openedPath);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamRead($wrappedResource, int $count): string|false
+    public function streamRead(StreamWrapperInterface $streamWrapper, int $count): string|false
     {
-        return $this->wrappedStreamHandler->streamRead($wrappedResource, $count);
+        return $this->wrappedStreamHandler->streamRead($streamWrapper, $count);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamSeek($wrappedResource, int $offset, int $whence = SEEK_SET): bool
+    public function streamSeek(StreamWrapperInterface $streamWrapper, int $offset, int $whence = SEEK_SET): bool
     {
-        return $this->wrappedStreamHandler->streamSeek($wrappedResource, $offset, $whence);
+        return $this->wrappedStreamHandler->streamSeek($streamWrapper, $offset, $whence);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamSetOption($wrappedResource, int $option, int $arg1, int $arg2): bool
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool
     {
-        return $this->wrappedStreamHandler->streamSetOption($wrappedResource, $option, $arg1, $arg2);
+        return $this->wrappedStreamHandler->streamSetOption($streamWrapper, $option, $arg1, $arg2);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamStat($wrappedResource): array|false
+    public function streamStat(StreamWrapperInterface $streamWrapper): array|false
     {
-        return $this->wrappedStreamHandler->streamStat($wrappedResource);
+        return $this->wrappedStreamHandler->streamStat($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamTell($wrappedResource): int|false
+    public function streamTell(StreamWrapperInterface $streamWrapper): int|false
     {
-        return $this->wrappedStreamHandler->streamTell($wrappedResource);
+        return $this->wrappedStreamHandler->streamTell($streamWrapper);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamTruncate($wrappedResource, int $newSize): bool
+    public function streamTruncate(StreamWrapperInterface $streamWrapper, int $newSize): bool
     {
-        return $this->wrappedStreamHandler->streamTruncate($wrappedResource, $newSize);
+        return $this->wrappedStreamHandler->streamTruncate($streamWrapper, $newSize);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamWrite($wrappedResource, string $data): int|false
+    public function streamWrite(StreamWrapperInterface $streamWrapper, string $data): int|false
     {
-        return $this->wrappedStreamHandler->streamWrite($wrappedResource, $data);
+        return $this->wrappedStreamHandler->streamWrite($streamWrapper, $data);
     }
 
     /**
      * @inheritDoc
      */
-    public function unlink($context, string $path): bool
+    public function unlink(StreamWrapperInterface $streamWrapper, string $path): bool
     {
-        return $this->wrappedStreamHandler->unlink($context, $path);
+        return $this->wrappedStreamHandler->unlink($streamWrapper, $path);
     }
 
     /**

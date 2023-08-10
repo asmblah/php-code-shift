@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
+
 /**
  * Interface StreamHandlerInterface.
  *
@@ -25,88 +27,65 @@ interface StreamHandlerInterface
 {
     /**
      * Closes the given directory that was opened for walking.
-     *
-     * @param resource $wrappedResource
      */
-    public function closeDir($wrappedResource): bool;
+    public function closeDir(StreamWrapperInterface $streamWrapper): bool;
 
     /**
      * Opens the given directory for walking.
      *
-     * @param resource|null $context
      * @return resource|null
      */
-    public function openDir($context, string $path, int $options);
+    public function openDir(StreamWrapperInterface $streamWrapper, string $path, int $options);
 
     /**
      * Reads the next file from the directory.
-     *
-     * @param resource $wrappedResource
      */
-    public function readDir($wrappedResource): string|false;
+    public function readDir(StreamWrapperInterface $streamWrapper): string|false;
 
     /**
      * Rewinds the directory walk to the beginning.
-     *
-     * @param resource $wrappedResource
      */
-    public function rewindDir($wrappedResource): bool;
+    public function rewindDir(StreamWrapperInterface $streamWrapper): bool;
 
     /**
      * Creates a new directory as specified.
-     *
-     * @param resource|null $context
      */
-    public function mkdir($context, string $path, int $mode, int $options): bool;
+    public function mkdir(StreamWrapperInterface $streamWrapper, string $path, int $mode, int $options): bool;
 
     /**
      * Renames the given path as specified.
-     *
-     * @param resource|null $context
      */
-    public function rename($context, string $fromPath, string $toPath): bool;
+    public function rename(StreamWrapperInterface $streamWrapper, string $fromPath, string $toPath): bool;
 
     /**
      * Deletes the given directory.
-     *
-     * @param resource|null $context
      */
-    public function rmdir($context, string $path, int $options): bool;
+    public function rmdir(StreamWrapperInterface $streamWrapper, string $path, int $options): bool;
 
     /**
      * Casts this stream to a resource.
-     *
-     * @return resource
      */
-    public function streamCast($wrappedResource, int $castAs);
+    public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs);
 
     /**
      * Closes the stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamClose($wrappedResource): void;
+    public function streamClose(StreamWrapperInterface $streamWrapper): void;
 
     /**
      * Determines whether we are at the end of this stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamEof($wrappedResource): bool;
+    public function streamEof(StreamWrapperInterface $streamWrapper): bool;
 
     /**
      * Flushes data written to this stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamFlush($wrappedResource): bool;
+    public function streamFlush(StreamWrapperInterface $streamWrapper): bool;
 
     /**
      * Locks this stream as specified.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamLock($wrappedResource, int $operation): bool;
+    public function streamLock(StreamWrapperInterface $streamWrapper, int $operation): bool;
 
     /**
      * Sets the given metadata for this stream.
@@ -116,11 +95,10 @@ interface StreamHandlerInterface
     /**
      * Opens the given path for this stream.
      *
-     * @param resource|null $context
      * @return resource|null
      */
     public function streamOpen(
-        $context,
+        StreamWrapperInterface $streamWrapper,
         string $path,
         string $mode,
         int $options,
@@ -129,59 +107,43 @@ interface StreamHandlerInterface
 
     /**
      * Reads from the given stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamRead($wrappedResource, int $count): string|false;
+    public function streamRead(StreamWrapperInterface $streamWrapper, int $count): string|false;
 
     /**
      * Seeks the stream to a new position.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamSeek($wrappedResource, int $offset, int $whence = SEEK_SET): bool;
+    public function streamSeek(StreamWrapperInterface $streamWrapper, int $offset, int $whence = SEEK_SET): bool;
 
     /**
      * Sets the given stream option.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamSetOption($wrappedResource, int $option, int $arg1, int $arg2): bool;
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool;
 
     /**
      * Performs a stat of the given open stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamStat($wrappedResource): array|false;
+    public function streamStat(StreamWrapperInterface $streamWrapper): array|false;
 
     /**
      * Fetches the current position/offset within the stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamTell($wrappedResource): int|false;
+    public function streamTell(StreamWrapperInterface $streamWrapper): int|false;
 
     /**
      * Truncates the given stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamTruncate($wrappedResource, int $newSize): bool;
+    public function streamTruncate(StreamWrapperInterface $streamWrapper, int $newSize): bool;
 
     /**
      * Writes the given data to the stream.
-     *
-     * @param resource $wrappedResource
      */
-    public function streamWrite($wrappedResource, string $data): int|false;
+    public function streamWrite(StreamWrapperInterface $streamWrapper, string $data): int|false;
 
     /**
      * Deletes the given file.
-     *
-     * @param resource|null $context
      */
-    public function unlink($context, string $path): bool;
+    public function unlink(StreamWrapperInterface $streamWrapper, string $path): bool;
 
     /**
      * Performs a filesystem stat of the given path.

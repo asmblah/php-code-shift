@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 
 /**
@@ -29,9 +30,9 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function closeDir($wrappedResource): bool
+    public function closeDir(StreamWrapperInterface $streamWrapper): bool
     {
-        closedir($wrappedResource);
+        closedir($streamWrapper->getWrappedResource());
 
         return true;
     }
@@ -39,8 +40,10 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function openDir($context, string $path, int $options)
+    public function openDir(StreamWrapperInterface $streamWrapper, string $path, int $options)
     {
+        $context = $streamWrapper->getContext();
+
         $resource = $this->unwrapped(
             fn () => $context ?
                 opendir($path, $context) :
@@ -57,17 +60,17 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function readDir($wrappedResource): string|false
+    public function readDir(StreamWrapperInterface $streamWrapper): string|false
     {
-        return readdir($wrappedResource);
+        return readdir($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function rewindDir($wrappedResource): bool
+    public function rewindDir(StreamWrapperInterface $streamWrapper): bool
     {
-        rewinddir($wrappedResource);
+        rewinddir($streamWrapper->getWrappedResource());
 
         return true;
     }
@@ -75,8 +78,9 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function mkdir($context, string $path, int $mode, int $options): bool
+    public function mkdir(StreamWrapperInterface $streamWrapper, string $path, int $mode, int $options): bool
     {
+        $context = $streamWrapper->getContext();
         $recursive = (bool) ($options & STREAM_MKDIR_RECURSIVE);
 
         return $this->unwrapped(
@@ -89,8 +93,10 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function rename($context, string $fromPath, string $toPath): bool
+    public function rename(StreamWrapperInterface $streamWrapper, string $fromPath, string $toPath): bool
     {
+        $context = $streamWrapper->getContext();
+
         return $this->unwrapped(
             fn () => $context ?
                 rename($fromPath, $toPath, $context) :
@@ -101,8 +107,10 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function rmdir($context, string $path, int $options): bool
+    public function rmdir(StreamWrapperInterface $streamWrapper, string $path, int $options): bool
     {
+        $context = $streamWrapper->getContext();
+
         // TODO: How should $options be handled?
 
         return $this->unwrapped(
@@ -115,44 +123,44 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function streamCast($wrappedResource, int $castAs)
+    public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs)
     {
         // TODO: How should $castAs be handled?
         //       Safe to ignore as this wrapper should never be used with stream_select()?
 
-        return $wrappedResource;
+        return $streamWrapper->getWrappedResource();
     }
 
     /**
      * @inheritDoc
      */
-    public function streamClose($wrappedResource): void
+    public function streamClose(StreamWrapperInterface $streamWrapper): void
     {
-        fclose($wrappedResource);
+        fclose($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function streamEof($wrappedResource): bool
+    public function streamEof(StreamWrapperInterface $streamWrapper): bool
     {
-        return feof($wrappedResource);
+        return feof($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function streamFlush($wrappedResource): bool
+    public function streamFlush(StreamWrapperInterface $streamWrapper): bool
     {
-        return fflush($wrappedResource);
+        return fflush($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function streamLock($wrappedResource, int $operation): bool
+    public function streamLock(StreamWrapperInterface $streamWrapper, int $operation): bool
     {
-        return flock($wrappedResource, $operation);
+        return flock($streamWrapper->getWrappedResource(), $operation);
     }
 
     /**
@@ -182,12 +190,13 @@ class StreamHandler implements StreamHandlerInterface
      * @inheritDoc
      */
     public function streamOpen(
-        $context,
+        StreamWrapperInterface $streamWrapper,
         string $path,
         string $mode,
         int $options,
         ?string &$openedPath
     ) {
+        $context = $streamWrapper->getContext();
         $usePath = (bool) ($options & STREAM_USE_PATH);
 
         $resource = $this->unwrapped(
@@ -232,24 +241,24 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function streamRead($wrappedResource, int $count): string|false
+    public function streamRead(StreamWrapperInterface $streamWrapper, int $count): string|false
     {
-        return fread($wrappedResource, $count);
+        return fread($streamWrapper->getWrappedResource(), $count);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamSeek($wrappedResource, int $offset, int $whence = SEEK_SET): bool
+    public function streamSeek(StreamWrapperInterface $streamWrapper, int $offset, int $whence = SEEK_SET): bool
     {
         // fseek(...) returns 0 on success.
-        return fseek($wrappedResource, $offset, $whence) === 0;
+        return fseek($streamWrapper->getWrappedResource(), $offset, $whence) === 0;
     }
 
     /**
      * @inheritDoc
      */
-    public function streamSetOption($wrappedResource, int $option, int $arg1, int $arg2): bool
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool
     {
         return false;
 
@@ -268,40 +277,42 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function streamStat($wrappedResource): array|false
+    public function streamStat(StreamWrapperInterface $streamWrapper): array|false
     {
-        return fstat($wrappedResource);
+        return fstat($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function streamTell($wrappedResource): int|false
+    public function streamTell(StreamWrapperInterface $streamWrapper): int|false
     {
-        return ftell($wrappedResource);
+        return ftell($streamWrapper->getWrappedResource());
     }
 
     /**
      * @inheritDoc
      */
-    public function streamTruncate($wrappedResource, int $newSize): bool
+    public function streamTruncate(StreamWrapperInterface $streamWrapper, int $newSize): bool
     {
-        return ftruncate($wrappedResource, $newSize);
+        return ftruncate($streamWrapper->getWrappedResource(), $newSize);
     }
 
     /**
      * @inheritDoc
      */
-    public function streamWrite($wrappedResource, string $data): int|false
+    public function streamWrite(StreamWrapperInterface $streamWrapper, string $data): int|false
     {
-        return fwrite($wrappedResource, $data);
+        return fwrite($streamWrapper->getWrappedResource(), $data);
     }
 
     /**
      * @inheritDoc
      */
-    public function unlink($context, string $path): bool
+    public function unlink(StreamWrapperInterface $streamWrapper, string $path): bool
     {
+        $context = $streamWrapper->getContext();
+
         return $this->unwrapped(
             fn () => $context ?
                 unlink($path, $context) :
