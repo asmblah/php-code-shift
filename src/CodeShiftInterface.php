@@ -18,13 +18,13 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 
 /**
- * Interface CodeShiftFacadeInterface.
+ * Interface CodeShiftInterface.
  *
  * Defines the public facade API for the library.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface CodeShiftFacadeInterface
+interface CodeShiftInterface
 {
     /**
      * Adds a filter for paths that should never be transpiled.

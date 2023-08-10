@@ -37,7 +37,7 @@ use PhpParser\PrettyPrinter\Standard;
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class CodeShift implements CodeShiftFacadeInterface
+class CodeShift implements CodeShiftInterface
 {
     private DelegatingShiftInterface $delegatingShift;
     private DenyListInterface $denyList;
