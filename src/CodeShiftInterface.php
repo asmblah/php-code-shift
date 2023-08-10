@@ -32,6 +32,11 @@ interface CodeShiftInterface
     public function deny(FileFilterInterface $filter): void;
 
     /**
+     * Installs all behaviour registered by this CodeShift instance.
+     */
+    public function install(): void;
+
+    /**
      * Registers the given type of shift.
      */
     public function registerShiftType(ShiftTypeInterface $shiftType): void;
@@ -42,7 +47,7 @@ interface CodeShiftInterface
     public function shift(ShiftSpecInterface $shiftSpec, ?FileFilterInterface $fileFilter = null): void;
 
     /**
-     * Uninstalls all shifts registered by this CodeShift instance.
+     * Uninstalls all behaviour registered by this CodeShift instance.
      */
     public function uninstall(): void;
 }

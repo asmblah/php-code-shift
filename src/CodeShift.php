@@ -84,6 +84,14 @@ class CodeShift implements CodeShiftInterface
     /**
      * @inheritDoc
      */
+    public function install(): void
+    {
+        $this->shifter->install();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function registerShiftType(ShiftTypeInterface $shiftType): void
     {
         $this->delegatingShift->registerShiftType($shiftType);
