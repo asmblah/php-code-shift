@@ -209,26 +209,64 @@ class StreamHandler implements StreamHandlerInterface
             return null;
         }
 
-        $shiftSet = StreamWrapperManager::getShiftSetForPath($path);
+        /*
+         * Include determination logic inspired by Patchwork's.
+         *
+         * @see {@link https://github.com/antecedent/patchwork/blob/master/src/CodeManipulation/Stream.php}
+         */
+        $including = (bool) ($options & self::STREAM_OPEN_FOR_INCLUDE);
 
-        if ($shiftSet) {
-            /*
-             * File should have one or more shifts applied:
-             *
-             * - Read its entire contents into memory,
-             * - Apply all shifts
-             * - Write the shifted contents to an in-memory buffer
-             * - Use the in-memory buffer as the backing buffer for this stream,
-             *   so that the shifted contents are treated as the contents of the file.
-             *   Note that the original file is not modified in any way.
-             */
-            $contents = stream_get_contents($resource);
+        // In PHP 7 and 8, `parse_ini_file()` also sets STREAM_OPEN_FOR_INCLUDE.
+        if ($including) {
+            $frames = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 
-            $shiftedContents = $shiftSet->shift($contents);
+            foreach ($frames as $index => $frame) {
+                $class = $frame['class'] ?? null;
 
-            $resource = fopen('php://memory', 'wb+');
-            fwrite($resource, $shiftedContents);
-            fseek($resource, 0);
+                /*
+                 * Check the frame that called the method in StreamWrapper
+                 * to see whether it was from the built-in function parse_ini_file(...).
+                 */
+
+                if ($class !== StreamWrapper::class) {
+                    continue;
+                }
+
+                $streamWrapperCallerFrame = $frames[$index + 1];
+
+                if (
+                    empty($streamWrapperCallerFrame['class']) &&
+                    $streamWrapperCallerFrame['function'] === 'parse_ini_file'
+                ) {
+                    $including = false;
+                }
+
+                break;
+            }
+        }
+
+        if ($including) {
+            $shiftSet = StreamWrapperManager::getShiftSetForPath($path);
+
+            if ($shiftSet) {
+                /*
+                 * File should have one or more shifts applied:
+                 *
+                 * - Read its entire contents into memory,
+                 * - Apply all shifts
+                 * - Write the shifted contents to an in-memory buffer
+                 * - Use the in-memory buffer as the backing buffer for this stream,
+                 *   so that the shifted contents are treated as the contents of the file.
+                 *   Note that the original file is not modified in any way.
+                 */
+                $contents = stream_get_contents($resource);
+
+                $shiftedContents = $shiftSet->shift($contents);
+
+                $resource = fopen('php://memory', 'wb+');
+                fwrite($resource, $shiftedContents);
+                fseek($resource, 0);
+            }
         }
 
         if ($usePath && $openedPath) {

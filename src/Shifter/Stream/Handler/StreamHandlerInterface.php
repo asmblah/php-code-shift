@@ -25,6 +25,8 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
  */
 interface StreamHandlerInterface
 {
+    public const STREAM_OPEN_FOR_INCLUDE = 128;
+
     /**
      * Closes the given directory that was opened for walking.
      */

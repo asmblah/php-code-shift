@@ -18,8 +18,6 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          # Ensure ext-amqp is excluded.
-          extensions: ':amqp'
 
       - name: Install Composer dependencies
         run: composer install
