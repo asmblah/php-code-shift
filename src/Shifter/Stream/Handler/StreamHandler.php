@@ -16,6 +16,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
+use Asmblah\PhpCodeShift\Util\CallStackInterface;
 
 /**
  * Class StreamHandler.
@@ -27,6 +28,11 @@ use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
  */
 class StreamHandler implements StreamHandlerInterface
 {
+    public function __construct(
+        private readonly CallStackInterface $callStack
+    ) {
+    }
+
     /**
      * @inheritDoc
      */
@@ -217,32 +223,8 @@ class StreamHandler implements StreamHandlerInterface
         $including = (bool) ($options & self::STREAM_OPEN_FOR_INCLUDE);
 
         // In PHP 7 and 8, `parse_ini_file()` also sets STREAM_OPEN_FOR_INCLUDE.
-        if ($including) {
-            $frames = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-
-            foreach ($frames as $index => $frame) {
-                $class = $frame['class'] ?? null;
-
-                /*
-                 * Check the frame that called the method in StreamWrapper
-                 * to see whether it was from the built-in function parse_ini_file(...).
-                 */
-
-                if ($class !== StreamWrapper::class) {
-                    continue;
-                }
-
-                $streamWrapperCallerFrame = $frames[$index + 1];
-
-                if (
-                    empty($streamWrapperCallerFrame['class']) &&
-                    $streamWrapperCallerFrame['function'] === 'parse_ini_file'
-                ) {
-                    $including = false;
-                }
-
-                break;
-            }
+        if ($including && $this->callStack->getNativeFunctionName() === 'parse_ini_file') {
+            $including = false;
         }
 
         if ($including) {

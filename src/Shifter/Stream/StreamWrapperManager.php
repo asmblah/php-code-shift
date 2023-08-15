@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream;
 
+use Asmblah\PhpCodeShift\Shared;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSet;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
@@ -40,7 +41,7 @@ class StreamWrapperManager
     public static function init(): void
     {
         static::$shiftCollections = new SplObjectStorage();
-        static::$streamHandler = new StreamHandler();
+        static::$streamHandler = new StreamHandler(Shared::getCallStack());
     }
 
     public static function getShiftSetForPath(string $path): ?ShiftSetInterface
