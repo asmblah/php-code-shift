@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
+use Asmblah\PhpCodeShift\Shifter\Modifier\Context;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -29,8 +30,7 @@ use PhpParser\PrettyPrinterAbstract;
 class FunctionHookShiftType implements ShiftTypeInterface
 {
     public function __construct(
-        private readonly Parser $parser,
-        private readonly PrettyPrinterAbstract $prettyPrinter
+        private readonly Parser $parser
     ) {
     }
 
@@ -62,13 +62,21 @@ class FunctionHookShiftType implements ShiftTypeInterface
 
         $ast = $this->parser->parse($contents);
 
-        $ast = $nodeTraverser->traverse($ast);
+        $nodeTraverser->traverse($ast);
 
-        if (!$callVisitor->madeModifications()) {
+        $modifications = $callVisitor->getModifications();
+
+        if (empty($modifications)) {
             // Don't regenerate the file if nothing was changed.
             return $contents;
         }
 
-        return $this->prettyPrinter->prettyPrintFile($ast);
+        $context = new Context();
+
+        foreach ($modifications as $modification) {
+            $contents = $modification->perform($contents, $context);
+        }
+
+        return $contents;
     }
 }

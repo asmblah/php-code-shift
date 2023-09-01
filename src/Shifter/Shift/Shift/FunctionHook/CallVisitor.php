@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Hook\Invoker;
+use Asmblah\PhpCodeShift\Shifter\Modifier\AstNodeModification;
+use Asmblah\PhpCodeShift\Shifter\Modifier\ModificationInterface;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -29,7 +31,10 @@ use PhpParser\NodeVisitorAbstract;
  */
 class CallVisitor extends NodeVisitorAbstract
 {
-    private bool $modified = false;
+    /**
+     * @var ModificationInterface[]
+     */
+    private array $modifications = [];
 
     public function __construct(
         private readonly FunctionHookShiftSpec $shiftSpec
@@ -42,12 +47,9 @@ class CallVisitor extends NodeVisitorAbstract
             $node->name instanceof Name &&
             $node->name->toCodeString() === $this->shiftSpec->getFunctionName()
         ) {
-            $this->modified = true;
-
-            return new StaticCall(
-                new Name('\\' . Invoker::class),
-                $this->shiftSpec->getFunctionName(),
-                $node->args
+            $this->modifications[] = new AstNodeModification(
+                $node->name,
+                '\\' . Invoker::class . '::' . $this->shiftSpec->getFunctionName()
             );
         }
 
@@ -55,10 +57,12 @@ class CallVisitor extends NodeVisitorAbstract
     }
 
     /**
-     * Determines whether any calls were modified.
+     * Fetches all code modifications.
+     *
+     * @return ModificationInterface[]
      */
-    public function madeModifications(): bool
+    public function getModifications(): array
     {
-        return $this->modified;
+        return $this->modifications;
     }
 }

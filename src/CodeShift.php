@@ -17,6 +17,8 @@ use Asmblah\PhpCodeShift\Shifter\Filter\DenyList;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
+use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
+use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactoryInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
@@ -27,8 +29,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
 use Asmblah\PhpCodeShift\Shifter\ShifterInterface;
-use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter\Standard;
+use PhpParser\ParserFactory as LibraryParserFactory;
 
 /**
  * Class CodeShift.
@@ -45,6 +46,7 @@ class CodeShift implements CodeShiftInterface
 
     public function __construct(
         ?DenyListInterface $denyList = null,
+        ?ParserFactoryInterface $parserFactory = null,
         ?DelegatingShiftInterface $delegatingShift = null,
         ?ShifterInterface $shifter = null
     ) {
@@ -55,14 +57,16 @@ class CodeShift implements CodeShiftInterface
             $denyList->addFilter(new FileFilter(realpath(__DIR__ . '/..') . '/src/**'));
         }
 
+        if ($parserFactory === null) {
+            $parserFactory = new ParserFactory(new LibraryParserFactory());
+        }
+
         if ($delegatingShift === null) {
             $delegatingShift = new DelegatingShift();
 
-            $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
             $delegatingShift->registerShiftType(
                 new FunctionHookShiftType(
-                    $parser,
-                    new Standard()
+                    $parserFactory->createParser()
                 )
             );
             $delegatingShift->registerShiftType(new StringShiftType());
