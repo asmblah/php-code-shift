@@ -17,7 +17,6 @@ use Asmblah\PhpCodeShift\Shifter\Modifier\Context;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
-use PhpParser\PrettyPrinterAbstract;
 
 /**
  * Class FunctionHookShiftType.

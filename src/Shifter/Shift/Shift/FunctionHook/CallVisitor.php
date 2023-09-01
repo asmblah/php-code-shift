@@ -18,7 +18,6 @@ use Asmblah\PhpCodeShift\Shifter\Modifier\AstNodeModification;
 use Asmblah\PhpCodeShift\Shifter\Modifier\ModificationInterface;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
-use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name;
 use PhpParser\NodeVisitorAbstract;
 
