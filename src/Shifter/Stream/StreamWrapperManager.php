@@ -33,22 +33,25 @@ use SplObjectStorage;
 class StreamWrapperManager
 {
     /**
-     * @var SplObjectStorage<ShiftCollectionInterface>|null
+     * @var SplObjectStorage<ShiftCollectionInterface, mixed>
      */
-    private static ?SplObjectStorage $shiftCollections;
-    private static ?StreamHandlerInterface $streamHandler;
+    private static SplObjectStorage $shiftCollections;
+    private static StreamHandlerInterface $streamHandler;
 
     public static function init(): void
     {
-        static::$shiftCollections = new SplObjectStorage();
-        static::$streamHandler = new StreamHandler(Shared::getCallStack());
+        /** @var SplObjectStorage<ShiftCollectionInterface, mixed> $shiftCollections */
+        $shiftCollections = new SplObjectStorage();
+
+        self::$shiftCollections = $shiftCollections;
+        self::$streamHandler = new StreamHandler(Shared::getCallStack(), Shared::getStreamShifter());
     }
 
     public static function getShiftSetForPath(string $path): ?ShiftSetInterface
     {
         $applicableShifts = [];
 
-        foreach (static::$shiftCollections as $shiftCollection) {
+        foreach (self::$shiftCollections as $shiftCollection) {
             foreach ($shiftCollection->getShifts() as $shift) {
                 if ($shift->appliesTo($path)) {
                     $applicableShifts[] = $shift;
@@ -66,14 +69,14 @@ class StreamWrapperManager
      */
     public static function getStreamHandler(): StreamHandlerInterface
     {
-        return static::$streamHandler;
+        return self::$streamHandler;
     }
 
     public static function installShiftCollection(ShiftCollectionInterface $shiftCollection): void
     {
-        static::$shiftCollections->attach($shiftCollection);
+        self::$shiftCollections->attach($shiftCollection);
 
-        if (count(static::$shiftCollections) === 1) {
+        if (count(self::$shiftCollections) === 1) {
             StreamWrapper::register();
         }
     }
@@ -83,14 +86,14 @@ class StreamWrapperManager
      */
     public static function setStreamHandler(StreamHandlerInterface $streamHandler): void
     {
-        static::$streamHandler = $streamHandler;
+        self::$streamHandler = $streamHandler;
     }
 
     public static function uninstallShiftCollection(ShiftCollectionInterface $shiftCollection): void
     {
-        static::$shiftCollections->detach($shiftCollection);
+        self::$shiftCollections->detach($shiftCollection);
 
-        if (count(static::$shiftCollections) === 0) {
+        if (count(self::$shiftCollections) === 0) {
             StreamWrapper::unregister();
         }
     }

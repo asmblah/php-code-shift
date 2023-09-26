@@ -14,12 +14,11 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Hook\Invoker;
-use Asmblah\PhpCodeShift\Shifter\Modifier\AstNodeModification;
-use Asmblah\PhpCodeShift\Shifter\Modifier\ModificationInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AbstractNodeVisitor;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Name;
-use PhpParser\NodeVisitorAbstract;
 
 /**
  * Class CallVisitor.
@@ -28,40 +27,30 @@ use PhpParser\NodeVisitorAbstract;
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class CallVisitor extends NodeVisitorAbstract
+class CallVisitor extends AbstractNodeVisitor
 {
-    /**
-     * @var ModificationInterface[]
-     */
-    private array $modifications = [];
-
     public function __construct(
         private readonly FunctionHookShiftSpec $shiftSpec
     ) {
     }
 
-    public function enterNode(Node $node) {
+    /**
+     * Replaces function calls with a static call to the special Invoker class for hooking.
+     */
+    public function enterNode(Node $node)
+    {
         if (
             $node instanceof FuncCall &&
             $node->name instanceof Name &&
             $node->name->toCodeString() === $this->shiftSpec->getFunctionName()
         ) {
-            $this->modifications[] = new AstNodeModification(
-                $node->name,
-                '\\' . Invoker::class . '::' . $this->shiftSpec->getFunctionName()
+            return new StaticCall(
+                new Name('\\' . Invoker::class),
+                $this->shiftSpec->getFunctionName(),
+                $node->args
             );
         }
 
-        return null;
-    }
-
-    /**
-     * Fetches all code modifications.
-     *
-     * @return ModificationInterface[]
-     */
-    public function getModifications(): array
-    {
-        return $this->modifications;
+        return null; // Leave the node unchanged.
     }
 }

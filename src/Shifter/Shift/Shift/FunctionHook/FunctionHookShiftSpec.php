@@ -32,7 +32,7 @@ class FunctionHookShiftSpec implements ShiftSpecInterface
     private $replacementProvider;
 
     public function __construct(
-        private string $functionName,
+        private readonly string $functionName,
         callable $replacementProvider
     ) {
         $this->replacementProvider = $replacementProvider;

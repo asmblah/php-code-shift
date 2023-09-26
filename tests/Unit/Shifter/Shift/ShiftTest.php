@@ -15,9 +15,11 @@ namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Shift;
 
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 
@@ -28,23 +30,11 @@ use Mockery\MockInterface;
  */
 class ShiftTest extends AbstractTestCase
 {
-    /**
-     * @var (MockInterface&DelegatingShiftInterface)|null
-     */
-    private $delegatingShift;
-    /**
-     * @var (MockInterface&DenyListInterface)|null
-     */
-    private $denyList;
-    /**
-     * @var (MockInterface&FileFilterInterface)|null
-     */
-    private $fileFilter;
-    private ?Shift $shift;
-    /**
-     * @var (MockInterface&ShiftSpecInterface)|null
-     */
-    private $shiftSpec;
+    private MockInterface&DelegatingShiftInterface $delegatingShift;
+    private MockInterface&DenyListInterface $denyList;
+    private MockInterface&FileFilterInterface $fileFilter;
+    private Shift $shift;
+    private MockInterface&ShiftSpecInterface $shiftSpec;
 
     public function setUp(): void
     {
@@ -85,6 +75,18 @@ class ShiftTest extends AbstractTestCase
         static::assertFalse($this->shift->appliesTo('/my/path.php'));
     }
 
+    public function testConfigureTraversalConfiguresViaTheDelegatingShift(): void
+    {
+        $astTraverser = mock(AstTraverserInterface::class);
+        $shiftContext = mock(ShiftContextInterface::class);
+
+        $this->delegatingShift->expects()
+            ->configureTraversal($this->shiftSpec, $astTraverser, $shiftContext)
+            ->once();
+
+        $this->shift->configureTraversal($astTraverser, $shiftContext);
+    }
+
     public function testInitInitsTheShiftSpec(): void
     {
         $this->shiftSpec->expects()
@@ -92,14 +94,5 @@ class ShiftTest extends AbstractTestCase
             ->once();
 
         $this->shift->init();
-    }
-
-    public function testShiftShiftsViaTheDelegatingShift(): void
-    {
-        $this->delegatingShift->allows()
-            ->shift($this->shiftSpec, 'my contents')
-            ->andReturn('my shifted contents');
-
-        static::assertSame('my shifted contents', $this->shift->shift('my contents'));
     }
 }

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Tests\Functional;
+namespace Asmblah\PhpCodeShift\Tests\Functional\Shift\Shift;
 
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
@@ -19,13 +19,13 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 
 /**
- * Class HookBuiltinFunctionTest.
+ * Class FunctionHookShiftTypeTest.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class HookBuiltinFunctionTest extends AbstractTestCase
+class FunctionHookShiftTypeTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
+    private CodeShift $codeShift;
 
     public function setUp(): void
     {
@@ -46,7 +46,7 @@ class HookBuiltinFunctionTest extends AbstractTestCase
                     };
                 }
             ),
-            new FileFilter(__DIR__ . '/Fixtures/**')
+            new FileFilter(dirname(__DIR__, 2) . '/Fixtures/**')
         );
     }
 
@@ -57,14 +57,21 @@ class HookBuiltinFunctionTest extends AbstractTestCase
 
     public function testCanHookBuiltinFunctionInModuleRootWhenInGlobalNamespace(): void
     {
-        $result = include __DIR__ . '/Fixtures/substr_module_root_global_namespace_test.php';
+        $result = include __DIR__ . '/../../Fixtures/substr_module_root_global_namespace_test.php';
+
+        static::assertSame('[substr<y st>] and [substr<ou>]', $result);
+    }
+
+    public function testCanHookBuiltinFunctionSplitAcrossMultipleLinesInModuleRootWhenInGlobalNamespace(): void
+    {
+        $result = include __DIR__ . '/../../Fixtures/substr_multi_line_test.php';
 
         static::assertSame('[substr<y st>] and [substr<ou>]', $result);
     }
 
     public function testCanHookBuiltinFunctionInModuleRootWhenInsideNamespace(): void
     {
-        $result = include __DIR__ . '/Fixtures/substr_module_root_namespace_test.php';
+        $result = include __DIR__ . '/../../Fixtures/substr_module_root_namespace_test.php';
 
         static::assertSame('[substr<y st>] and [substr<ou>]', $result);
     }
@@ -72,7 +79,7 @@ class HookBuiltinFunctionTest extends AbstractTestCase
     public function testCanHookBuiltinFunctionInPhar(): void
     {
         ob_start();
-        include __DIR__ . '/Fixtures/phar/substr_in_phar.phar';
+        include __DIR__ . '/../../Fixtures/phar/substr_in_phar.phar';
         $result = ob_get_clean();
 
         static::assertSame('[before] [substr<ll>] [after]', $result);

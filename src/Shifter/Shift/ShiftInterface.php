@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+
 /**
  * Interface ShiftInterface.
  *
@@ -28,12 +31,15 @@ interface ShiftInterface
     public function appliesTo(string $path): bool;
 
     /**
+     * Configures the traversal for the shift.
+     */
+    public function configureTraversal(
+        AstTraverserInterface $astTraverser,
+        ShiftContextInterface $shiftContext
+    ): void;
+
+    /**
      * Performs any initialisation needed for the shift.
      */
     public function init(): void;
-
-    /**
-     * Applies the shift to the contents.
-     */
-    public function shift(string $contents): string;
 }

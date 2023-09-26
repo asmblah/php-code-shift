@@ -16,17 +16,17 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\String;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 
 /**
- * Class StringShiftSpec.
+ * Class StringLiteralShiftSpec.
  *
  * Defines a shift that will perform the given string replacement.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StringShiftSpec implements ShiftSpecInterface
+class StringLiteralShiftSpec implements ShiftSpecInterface
 {
     public function __construct(
-        private string $needle,
-        private string $replacement
+        private readonly string $needle,
+        private readonly string $replacement
     ) {
     }
 

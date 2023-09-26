@@ -24,7 +24,7 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
  */
 class DenyListTest extends AbstractTestCase
 {
-    private ?DenyList $denyList;
+    private DenyList $denyList;
 
     public function setUp(): void
     {

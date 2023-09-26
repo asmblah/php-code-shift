@@ -11,24 +11,17 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Modifier;
+namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser;
+
+use PhpParser\NodeVisitor;
 
 /**
- * Interface ContextInterface.
+ * Interface NodeVisitorInterface.
  *
- * Represents the current context of the modification.
+ * Handles processing of AST nodes.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface ContextInterface
+interface NodeVisitorInterface extends NodeVisitor
 {
-    /**
-     * Fetches the current delta.
-     */
-    public function getDelta(): int;
-
-    /**
-     * Updates the current delta.
-     */
-    public function setDelta(int $delta): void;
 }

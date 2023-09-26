@@ -25,7 +25,7 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
  */
 class FileFilteringTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
+    private CodeShift $codeShift;
 
     public function setUp(): void
     {

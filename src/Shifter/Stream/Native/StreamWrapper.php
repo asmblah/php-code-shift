@@ -41,6 +41,8 @@ class StreamWrapper implements StreamWrapperInterface
 
     public function __construct()
     {
+        // Stream wrapper classes are instantiated by the PHP engine for each opened stream,
+        // so we cannot inject dependencies into this constructor. Instead, we fetch them statically.
         $this->streamHandler = StreamWrapperManager::getStreamHandler();
     }
 
@@ -251,6 +253,13 @@ class StreamWrapper implements StreamWrapperInterface
         return $this->streamHandler->streamSetOption($this, $option, $arg1, $arg2);
     }
 
+    /**
+     * Retrieves information about an open file resource.
+     *
+     * @see {@link https://www.php.net/manual/en/streamwrapper.stream-stat.php}
+     *
+     * @return array<mixed>|false
+     */
     public function stream_stat(): array|false
     {
         if (!$this->wrappedResource) {
@@ -300,6 +309,13 @@ class StreamWrapper implements StreamWrapperInterface
         }
     }
 
+    /**
+     * Retrieves information about a file from its path.
+     *
+     * @see {@link https://www.php.net/manual/en/streamwrapper.url-stat.php}
+     *
+     * @return array<mixed>|false
+     */
     public function url_stat(string $path, int $flags): array|false
     {
         return $this->streamHandler->urlStat($path, $flags);

@@ -14,22 +14,33 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\String;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
 
 /**
- * Class StringShiftType.
+ * Class StringLiteralShiftType.
  *
  * Defines a shift that will perform a string replacement.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StringShiftType implements ShiftTypeInterface
+class StringLiteralShiftType implements ShiftTypeInterface
 {
+    /**
+     * Configures the traversal for this shift.
+     */
+    public function configureTraversal(
+        StringLiteralShiftSpec $shiftSpec,
+        AstTraverserInterface $astTraverser
+    ): void {
+        $astTraverser->addVisitor(new StringLiteralVisitor($shiftSpec));
+    }
+
     /**
      * @inheritDoc
      */
-    public function getShifter(): callable
+    public function getConfigurer(): callable
     {
-        return $this->shift(...);
+        return $this->configureTraversal(...);
     }
 
     /**
@@ -37,14 +48,6 @@ class StringShiftType implements ShiftTypeInterface
      */
     public function getShiftSpecFqcn(): string
     {
-        return StringShiftSpec::class;
-    }
-
-    /**
-     * Applies the shift to the contents.
-     */
-    public function shift(StringShiftSpec $shiftSpec, string $contents): string
-    {
-        return str_replace($shiftSpec->getNeedle(), $shiftSpec->getReplacement(), $contents);
+        return StringLiteralShiftSpec::class;
     }
 }

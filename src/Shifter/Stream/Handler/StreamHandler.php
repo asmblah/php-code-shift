@@ -15,7 +15,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
-use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
+use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 
 /**
@@ -29,7 +29,8 @@ use Asmblah\PhpCodeShift\Util\CallStackInterface;
 class StreamHandler implements StreamHandlerInterface
 {
     public function __construct(
-        private readonly CallStackInterface $callStack
+        private readonly CallStackInterface $callStack,
+        private readonly StreamShifterInterface $streamShifter
     ) {
     }
 
@@ -177,7 +178,7 @@ class StreamHandler implements StreamHandlerInterface
         return $this->unwrapped(function () use ($option, $path, $value) {
             switch ($option) {
                 case STREAM_META_TOUCH:
-                    return touch($path, $value[0] ?? time(), $value[1] ?? time());
+                    return touch($path, $value[0] ?? null, $value[1] ?? null);
                 case STREAM_META_OWNER_NAME:
                 case STREAM_META_OWNER:
                     return chown($path, $value);
@@ -228,27 +229,9 @@ class StreamHandler implements StreamHandlerInterface
         }
 
         if ($including) {
-            $shiftSet = StreamWrapperManager::getShiftSetForPath($path);
-
-            if ($shiftSet) {
-                /*
-                 * File should have one or more shifts applied:
-                 *
-                 * - Read its entire contents into memory,
-                 * - Apply all shifts
-                 * - Write the shifted contents to an in-memory buffer
-                 * - Use the in-memory buffer as the backing buffer for this stream,
-                 *   so that the shifted contents are treated as the contents of the file.
-                 *   Note that the original file is not modified in any way.
-                 */
-                $contents = stream_get_contents($resource);
-
-                $shiftedContents = $shiftSet->shift($contents);
-
-                $resource = fopen('php://memory', 'wb+');
-                fwrite($resource, $shiftedContents);
-                fseek($resource, 0);
-            }
+            // Perform any applicable shifts for the included PHP module file,
+            // returning the new underlying resource to use for this open stream.
+            $resource = $this->streamShifter->shift($path, $resource);
         }
 
         if ($usePath && $openedPath) {

@@ -11,18 +11,15 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Modifier;
+namespace Asmblah\PhpCodeShift\Shifter\Printer;
 
 /**
- * Interface ModificationInterface.
+ * Interface NodePrinterInterface.
+ *
+ * Facade for printing AST nodes.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface ModificationInterface
+interface NodePrinterInterface extends NodeCollectionPrinterInterface, SingleNodePrinterInterface
 {
-    /**
-     * Performs this modification, updating the context as appropriate
-     * and returning the modified contents.
-     */
-    public function perform(string $contents, ContextInterface $context): string;
 }

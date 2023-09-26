@@ -23,9 +23,9 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 interface ShiftTypeInterface
 {
     /**
-     * Fetches the callable for this shift.
+     * Fetches the callable for this shift's traversal configuration.
      */
-    public function getShifter(): callable;
+    public function getConfigurer(): callable;
 
     /**
      * Fetches the FQCN of spec this shift uses.

@@ -15,8 +15,10 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift;
 
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
 
 /**
  * Class Shift.
@@ -51,16 +53,22 @@ class Shift implements ShiftInterface
     /**
      * @inheritDoc
      */
-    public function init(): void
-    {
-        $this->shiftSpec->init();
+    public function configureTraversal(
+        AstTraverserInterface $astTraverser,
+        ShiftContextInterface $shiftContext
+    ): void {
+        $this->delegatingShift->configureTraversal(
+            $this->shiftSpec,
+            $astTraverser,
+            $shiftContext
+        );
     }
 
     /**
      * @inheritDoc
      */
-    public function shift(string $contents): string
+    public function init(): void
     {
-        return $this->delegatingShift->shift($this->shiftSpec, $contents);
+        $this->shiftSpec->init();
     }
 }

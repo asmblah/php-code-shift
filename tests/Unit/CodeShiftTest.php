@@ -16,7 +16,6 @@ namespace Asmblah\PhpCodeShift\Tests\Unit;
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
-use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactoryInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
@@ -33,23 +32,10 @@ use Mockery\MockInterface;
  */
 class CodeShiftTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
-    /**
-     * @var (MockInterface&DelegatingShiftInterface)|null
-     */
-    private $delegatingShift;
-    /**
-     * @var (MockInterface&DenyListInterface)|null
-     */
-    private $denyList;
-    /**
-     * @var (MockInterface&ParserFactoryInterface)|null
-     */
-    private $parserFactory;
-    /**
-     * @var (MockInterface&ShifterInterface)|null
-     */
-    private $shifter;
+    private CodeShift $codeShift;
+    private MockInterface&DelegatingShiftInterface $delegatingShift;
+    private MockInterface&DenyListInterface $denyList;
+    private MockInterface&ShifterInterface $shifter;
 
     public function setUp(): void
     {
@@ -57,7 +43,6 @@ class CodeShiftTest extends AbstractTestCase
         $this->denyList = mock(DenyListInterface::class, [
             'fileMatches' => false,
         ]);
-        $this->parserFactory = mock(ParserFactoryInterface::class);
         $this->shifter = mock(ShifterInterface::class, [
             'addShift' => null,
             'install' => null,
@@ -66,7 +51,6 @@ class CodeShiftTest extends AbstractTestCase
 
         $this->codeShift = new CodeShift(
             $this->denyList,
-            $this->parserFactory,
             $this->delegatingShift,
             $this->shifter
         );

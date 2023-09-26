@@ -19,8 +19,19 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
 
+  phpstan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+
       - name: Install Composer dependencies
         run: composer install
 
-      - name: Run tests
-        run: vendor/bin/phpunit
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse -c phpstan.neon.dist

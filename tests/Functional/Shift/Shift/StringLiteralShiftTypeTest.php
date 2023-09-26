@@ -11,32 +11,32 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Tests\Functional;
+namespace Asmblah\PhpCodeShift\Tests\Functional\Shift\Shift;
 
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringShiftSpec;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 
 /**
- * Class StringShiftingTest.
+ * Class StringLiteralShiftTypeTest.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StringShiftingTest extends AbstractTestCase
+class StringLiteralShiftTypeTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
+    private CodeShift $codeShift;
 
     public function setUp(): void
     {
         $this->codeShift = new CodeShift();
 
         $this->codeShift->shift(
-            new StringShiftSpec(
+            new StringLiteralShiftSpec(
                 'mystring',
                 'yourstring'
             ),
-            new FileFilter(__DIR__ . '/Fixtures/**')
+            new FileFilter(dirname(__DIR__, 2) . '/Fixtures/**')
         );
     }
 
@@ -47,7 +47,7 @@ class StringShiftingTest extends AbstractTestCase
 
     public function testCanReplaceArbitraryStrings(): void
     {
-        $result = include __DIR__ . '/Fixtures/string_shift_test.php';
+        $result = include __DIR__ . '/../../Fixtures/string_shift_test.php';
 
         static::assertSame('this is yourstring here and that is also yourstring there', $result);
     }
