@@ -16,7 +16,7 @@ namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Printer;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeCollectionPrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\SingleNodePrinterInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 use PhpParser\Node;

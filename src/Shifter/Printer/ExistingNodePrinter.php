@@ -13,8 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use LogicException;
 use PhpParser\Node;
 
@@ -38,10 +37,10 @@ class ExistingNodePrinter implements ExistingNodePrinterInterface
     ): PrintedNodeInterface {
         // AST node already has position information,
         // so we can extract it verbatim from the working contents.
-        $start = $node->getAttribute(NodeAttribute::START_FILE_POS);
-        $length = $node->getAttribute(NodeAttribute::END_FILE_POS) - $start + 1;
-        $startLine = $node->getAttribute(NodeAttribute::START_LINE);
-        $endLine = $node->getAttribute(NodeAttribute::END_LINE);
+        $start = $node->getStartFilePos();
+        $length = $node->getEndFilePos() - $start + 1;
+        $startLine = $node->getStartLine();
+        $endLine = $node->getEndLine();
 
         $replacementCode = substr($modificationContext->getContents(), $start + $modificationContext->getDelta(), $length);
 

@@ -33,6 +33,9 @@ class StringLiteralNodePrinter implements NodeTypePrinterInterface
         return String_::class;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getPrinter(): callable
     {
         return $this->printNode(...);
@@ -47,6 +50,6 @@ class StringLiteralNodePrinter implements NodeTypePrinterInterface
     ): PrintedNodeInterface {
         $replacementCode = var_export($node->value, true);
 
-        return new PrintedNode($replacementCode, $line, $line);
+        return new PrintedNode($replacementCode, $line, $line + substr_count($replacementCode, PHP_EOL));
     }
 }

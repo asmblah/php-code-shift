@@ -13,12 +13,13 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node;
 
 /**
  * Class SingleNodePrinter.
+ *
+ * Prints a single AST node, either an existing or new one, as applicable.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
@@ -38,7 +39,7 @@ class SingleNodePrinter implements SingleNodePrinterInterface
         int $line,
         ModificationContextInterface $modificationContext
     ): PrintedNodeInterface {
-        if ($node->hasAttribute(NodeAttribute::START_FILE_POS)) {
+        if ($node->getStartFilePos() > -1) {
             $printedReplacement = $this->existingNodePrinter->printNode($node, $line, $modificationContext);
         } else {
             $printedReplacement = $this->newNodePrinter->printNode($node, $line, $modificationContext);

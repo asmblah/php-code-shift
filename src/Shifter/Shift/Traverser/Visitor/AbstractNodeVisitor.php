@@ -11,8 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser;
+namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\ModificationInterface;
 use PhpParser\Node;
 
 /**
@@ -27,32 +28,8 @@ class AbstractNodeVisitor implements NodeVisitorInterface
     /**
      * @inheritDoc
      */
-    public function beforeTraverse(array $nodes)
+    public function enterNode(Node $node): ?ModificationInterface
     {
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function enterNode(Node $node)
-    {
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function leaveNode(Node $node)
-    {
-        return null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function afterTraverse(array $nodes)
-    {
-        return null;
+        return null; // No change is to be made by default.
     }
 }

@@ -11,9 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser;
+namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\NodeVisitorInterface;
 use PhpParser\Node;
 use PhpParser\NodeVisitor;
 
@@ -32,17 +32,17 @@ class LibraryVisitor implements NodeVisitor
     /**
      * @inheritDoc
      */
-    public function afterTraverse(array $nodes)
+    public function afterTraverse(array $nodes): ?array
     {
-        return $this->visitor->afterTraverse($nodes);
+        return null;
     }
 
     /**
      * @inheritDoc
      */
-    public function beforeTraverse(array $nodes)
+    public function beforeTraverse(array $nodes): ?array
     {
-        return $this->visitor->beforeTraverse($nodes);
+        return null;
     }
 
     /**
@@ -52,12 +52,12 @@ class LibraryVisitor implements NodeVisitor
     {
         $result = $this->visitor->enterNode($node);
 
-        if ($result !== $node && $result instanceof Node) {
-            $node->setAttribute(NodeAttribute::REPLACEMENT_NODE, $result);
-            $result->setAttribute(NodeAttribute::REPLACED_NODE, $node);
+        if ($result === null) {
+            // Early-out if no change is to be made.
+            return null;
         }
 
-        return $result;
+        return $result->getLibraryResult();
     }
 
     /**
@@ -65,6 +65,6 @@ class LibraryVisitor implements NodeVisitor
      */
     public function leaveNode(Node $node)
     {
-        return $this->visitor->leaveNode($node);
+        return null;
     }
 }

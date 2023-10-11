@@ -33,6 +33,9 @@ class NameNodePrinter implements NodeTypePrinterInterface
         return Name::class;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getPrinter(): callable
     {
         return $this->printNode(...);
@@ -47,6 +50,6 @@ class NameNodePrinter implements NodeTypePrinterInterface
     ): PrintedNodeInterface {
         $replacementCode = $node->toCodeString();
 
-        return new PrintedNode($replacementCode, $line, $line);
+        return new PrintedNode($replacementCode, $line, $line + substr_count($replacementCode, PHP_EOL));
     }
 }

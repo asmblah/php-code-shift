@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node;
 
 /**
  * Interface SingleNodePrinterInterface.
+ *
+ * Prints a single AST node, either an existing or new one, as applicable.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */

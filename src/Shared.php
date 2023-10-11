@@ -20,11 +20,13 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NewNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeCollectionPrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\EncapsedStringPartNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ExpressionStatementNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\IdentifierNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NameNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StringLiteralNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\SingleNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolver;
 use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolver;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifter;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolver;
@@ -57,12 +59,15 @@ class Shared
 
         $delegatingNewNodePrinter = new DelegatingNewNodePrinter();
         $delegatingNewNodePrinter->registerNodePrinter(new EncapsedStringPartNodePrinter());
+        $delegatingNewNodePrinter->registerNodePrinter(new ExpressionStatementNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new IdentifierNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new NameNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new StaticCallNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new StringLiteralNodePrinter());
 
-        $newNodePrinter = new NewNodePrinter($nodeResolver, $delegatingNewNodePrinter);
+        $extentResolver = new ExtentResolver($nodeResolver);
+
+        $newNodePrinter = new NewNodePrinter($extentResolver, $delegatingNewNodePrinter);
         $singleNodePrinter = new SingleNodePrinter($existingNodePrinter, $newNodePrinter);
         $nodeCollectionPrinter = new NodeCollectionPrinter($singleNodePrinter);
 
@@ -73,7 +78,7 @@ class Shared
             new ShiftSetResolver(),
             new ShiftSetShifter(
                 (new ParserFactory(new LibraryParserFactory()))->createParser(),
-                $nodeResolver,
+                $extentResolver,
                 $nodePrinter
             )
         );

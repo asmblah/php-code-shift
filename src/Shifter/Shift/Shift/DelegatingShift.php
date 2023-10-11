@@ -15,7 +15,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use InvalidArgumentException;
 
 /**
@@ -38,7 +38,7 @@ class DelegatingShift implements DelegatingShiftInterface
      */
     public function configureTraversal(
         ShiftSpecInterface $shiftSpec,
-        AstTraverserInterface $astTraverser,
+        AstModificationTraverserInterface $astTraverser,
         ShiftContextInterface $shiftContext
     ): void {
         if (!array_key_exists($shiftSpec::class, $this->shiftSpecFqcnToConfigurerCallable)) {

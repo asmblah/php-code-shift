@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 
 /**
  * Interface ShiftInterface.
@@ -34,7 +34,7 @@ interface ShiftInterface
      * Configures the traversal for the shift.
      */
     public function configureTraversal(
-        AstTraverserInterface $astTraverser,
+        AstModificationTraverserInterface $astTraverser,
         ShiftContextInterface $shiftContext
     ): void;
 

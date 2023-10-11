@@ -11,7 +11,9 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Shift\Context;
+namespace Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context;
+
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 
 /**
  * Class ModificationContext.

@@ -17,7 +17,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use InvalidArgumentException;
 use Mockery\MockInterface;
@@ -29,13 +29,13 @@ use Mockery\MockInterface;
  */
 class DelegatingShiftTest extends AbstractTestCase
 {
-    private MockInterface&AstTraverserInterface $astTraverser;
+    private MockInterface&AstModificationTraverserInterface $astTraverser;
     private DelegatingShift $delegatingShift;
     private MockInterface&ShiftContextInterface $shiftContext;
 
     public function setUp(): void
     {
-        $this->astTraverser = mock(AstTraverserInterface::class);
+        $this->astTraverser = mock(AstModificationTraverserInterface::class);
         $this->shiftContext = mock(ShiftContextInterface::class);
 
         $this->delegatingShift = new DelegatingShift();

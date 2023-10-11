@@ -19,7 +19,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 
@@ -77,7 +77,7 @@ class ShiftTest extends AbstractTestCase
 
     public function testConfigureTraversalConfiguresViaTheDelegatingShift(): void
     {
-        $astTraverser = mock(AstTraverserInterface::class);
+        $astTraverser = mock(AstModificationTraverserInterface::class);
         $shiftContext = mock(ShiftContextInterface::class);
 
         $this->delegatingShift->expects()

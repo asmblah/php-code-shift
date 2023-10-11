@@ -17,7 +17,7 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 use PhpParser\Node\Arg;

@@ -33,6 +33,9 @@ class EncapsedStringPartNodePrinter implements NodeTypePrinterInterface
         return EncapsedStringPart::class;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getPrinter(): callable
     {
         return $this->printNode(...);
@@ -48,6 +51,6 @@ class EncapsedStringPartNodePrinter implements NodeTypePrinterInterface
         // Note that we do not enclose the string part in quotes.
         $replacementCode = $node->value;
 
-        return new PrintedNode($replacementCode, $line, $line);
+        return new PrintedNode($replacementCode, $line, $line + substr_count($replacementCode, PHP_EOL));
     }
 }

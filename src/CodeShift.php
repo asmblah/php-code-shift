@@ -23,6 +23,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftType;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\Tock\TockStatementShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
@@ -58,6 +59,7 @@ class CodeShift implements CodeShiftInterface
 
             $delegatingShift->registerShiftType(new FunctionHookShiftType());
             $delegatingShift->registerShiftType(new StringLiteralShiftType());
+            $delegatingShift->registerShiftType(new TockStatementShiftType());
         }
 
         $this->delegatingShift = $delegatingShift;

@@ -17,7 +17,7 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeTypePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNode;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node\Expr\StaticCall;
 
 /**
@@ -40,6 +40,9 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
         return StaticCall::class;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getPrinter(): callable
     {
         return $this->printNode(...);

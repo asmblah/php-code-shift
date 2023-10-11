@@ -22,10 +22,14 @@ namespace Asmblah\PhpCodeShift\Shifter\Ast;
  */
 interface NodeAttribute
 {
+    public const PREFIX = '__shift_';
     public const END_FILE_POS = 'endFilePos';
     public const END_LINE = 'endLine';
-    public const REPLACED_NODE = 'replacedNode';
-    public const REPLACEMENT_NODE = 'replacementNode';
+    public const INSERTION_TYPE = self::PREFIX . 'insertionType';
+    public const NEXT_SIBLING = self::PREFIX . 'nextSibling';
+    public const REPLACED_NODE = self::PREFIX . 'replacedNode';
+    public const REPLACEMENT_NODE = self::PREFIX . 'replacementNode';
     public const START_FILE_POS = 'startFilePos';
     public const START_LINE = 'startLine';
+    public const TRAVERSE_INSIDE = self::PREFIX . 'traverseInside';
 }

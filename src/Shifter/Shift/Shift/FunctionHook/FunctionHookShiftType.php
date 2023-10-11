@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 
 /**
  * Class FunctionHookShiftType.
@@ -31,7 +31,7 @@ class FunctionHookShiftType implements ShiftTypeInterface
      */
     public function configureTraversal(
         FunctionHookShiftSpec $shiftSpec,
-        AstTraverserInterface $astTraverser
+        AstModificationTraverserInterface $astTraverser
     ): void {
         $astTraverser->addVisitor(new CallVisitor($shiftSpec));
     }

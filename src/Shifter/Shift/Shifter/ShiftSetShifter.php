@@ -14,13 +14,15 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shifter;
 
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinterInterface;
-use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolverInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContext;
+use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolverInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContext;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContext;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\ModificationVisitor;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverser;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\ModificationVisitor;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\ShiftAstTraverser;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverser;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Code\CodeModificationTraverser;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 
 /**
@@ -34,7 +36,7 @@ class ShiftSetShifter implements ShiftSetShifterInterface
 {
     public function __construct(
         private readonly Parser $parser,
-        private readonly NodeResolverInterface $nodeResolver,
+        private readonly ExtentResolverInterface $extentResolver,
         private readonly NodePrinterInterface $nodePrinter
     ) {
     }
@@ -49,30 +51,39 @@ class ShiftSetShifter implements ShiftSetShifterInterface
         $shiftContext = new ShiftContext($shiftSet, $contents);
         $nodes = $this->parser->parse($contents);
 
-        $shiftAstTraverser = new ShiftAstTraverser();
+        // Resolve names (e.g. class identifiers -> FQCNs).
+        $nameResolvingTraverser = new NodeTraverser();
+        $nameResolvingTraverser->addVisitor(new NameResolver());
+        $nameResolvingTraverser->traverse($nodes);
+
+        // Set up AST modifications.
+        $astModificationTraverser = new AstModificationTraverser();
 
         foreach ($shiftSet->getShifts() as $shift) {
-            $shift->configureTraversal($shiftAstTraverser, $shiftContext);
+            $shift->configureTraversal($astModificationTraverser, $shiftContext);
         }
 
+        // Perform AST modifications.
         do {
             $previousNodes = $nodes;
-            $nodes = $shiftAstTraverser->traverse($nodes);
+            $nodes = $astModificationTraverser->traverse($nodes);
         } while ($nodes !== $previousNodes);
 
         $context = new ModificationContext($shiftContext);
 
-        // Now process all nodes that have changed in the AST,
+        // Now perform code modifications according to the AST modifications made above.
+
+        // Process all nodes that have changed in the AST,
         // generating each changed node's replacement code and replacing it in the code string.
-        $modificationAstTraverser = new AstTraverser();
-        $modificationAstTraverser->addVisitor(
+        $codeModificationTraverser = new CodeModificationTraverser();
+        $codeModificationTraverser->addVisitor(
             new ModificationVisitor(
                 $context,
-                $this->nodeResolver,
+                $this->extentResolver,
                 $this->nodePrinter
             )
         );
-        $modificationAstTraverser->traverse($nodes);
+        $codeModificationTraverser->traverse($nodes);
 
         // Return the final modified contents.
         return $context->getContents();

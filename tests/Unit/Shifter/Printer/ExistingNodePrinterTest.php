@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
 use Asmblah\PhpCodeShift\Shifter\Printer\ExistingNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Generator;
 use LogicException;
@@ -57,16 +56,16 @@ class ExistingNodePrinterTest extends AbstractTestCase
         int $expectedEndLine
     ): void {
         $this->node->allows()
-            ->getAttribute(NodeAttribute::START_FILE_POS)
+            ->getStartFilePos()
             ->andReturn($startFilePos);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::END_FILE_POS)
+            ->getEndFilePos()
             ->andReturn($endFilePos);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+            ->getStartLine()
             ->andReturn($startLine);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+            ->getEndLine()
             ->andReturn($endLine);
         $this->modificationContext->allows()
             ->getDelta()
@@ -127,16 +126,16 @@ class ExistingNodePrinterTest extends AbstractTestCase
     public function testPrintNodeRaisesLogicExceptionWhenImpossibleLineIsCurrent(): void
     {
         $this->node->allows()
-            ->getAttribute(NodeAttribute::START_FILE_POS)
+            ->getStartFilePos()
             ->andReturn(10);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::END_FILE_POS)
+            ->getEndFilePos()
             ->andReturn(15);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+            ->getStartLine()
             ->andReturn(3);
         $this->node->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+            ->getEndLine()
             ->andReturn(5);
         $this->modificationContext->allows()
             ->getDelta()

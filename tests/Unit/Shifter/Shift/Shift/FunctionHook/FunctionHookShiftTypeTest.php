@@ -16,7 +16,7 @@ namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Shift\Shift\FunctionHook;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\CallVisitor;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftSpec;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery;
 use Mockery\MockInterface;
@@ -28,13 +28,13 @@ use Mockery\MockInterface;
  */
 class FunctionHookShiftTypeTest extends AbstractTestCase
 {
-    private MockInterface&AstTraverserInterface $astTraverser;
+    private MockInterface&AstModificationTraverserInterface $astTraverser;
     private MockInterface&FunctionHookShiftSpec $shiftSpec;
     private FunctionHookShiftType $shiftType;
 
     public function setUp(): void
     {
-        $this->astTraverser = mock(AstTraverserInterface::class);
+        $this->astTraverser = mock(AstModificationTraverserInterface::class);
         $this->shiftSpec = mock(FunctionHookShiftSpec::class, [
             'getFunctionName' => 'myFunc',
         ]);

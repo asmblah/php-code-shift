@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
 use Asmblah\PhpCodeShift\Shifter\Printer\DelegatingNewNodePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\NewNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
-use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolverInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Resolver\CodeModificationExtentsInterface;
+use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolverInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use LogicException;
 use Mockery\MockInterface;
@@ -32,9 +32,9 @@ use PhpParser\Node;
 class NewNodePrinterTest extends AbstractTestCase
 {
     private MockInterface&DelegatingNewNodePrinterInterface $delegatingNodePrinter;
+    private MockInterface&ExtentResolverInterface $extentResolver;
     private MockInterface&ModificationContextInterface $modificationContext;
     private MockInterface&Node $node;
-    private MockInterface&NodeResolverInterface $nodeResolver;
     private MockInterface&PrintedNodeInterface $printedNode;
     private NewNodePrinter $printer;
 
@@ -49,11 +49,11 @@ class NewNodePrinterTest extends AbstractTestCase
         ]);
         $this->modificationContext = mock(ModificationContextInterface::class);
         $this->node = mock(Node::class);
-        $this->nodeResolver = mock(NodeResolverInterface::class, [
-            'extractReplacedNode' => null,
+        $this->extentResolver = mock(ExtentResolverInterface::class, [
+            'resolveModificationExtents' => null,
         ]);
 
-        $this->printer = new NewNodePrinter($this->nodeResolver, $this->delegatingNodePrinter);
+        $this->printer = new NewNodePrinter($this->extentResolver, $this->delegatingNodePrinter);
     }
 
     public function testPrintNodeInvokesTheDelegatorCorrectly(): void
@@ -68,16 +68,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeReturnsAdjustedPrintedNodeWhenReplacedNodeIsDefinedWithDifferentStartAndEndLines(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(10);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(15);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
 
@@ -101,16 +101,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeReturnsAdjustedPrintedNodeWhenReplacedNodeIsDefinedWithDifferentStartLineOnly(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(8);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(10);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
 
@@ -134,16 +134,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeReturnsAdjustedPrintedNodeWhenReplacedNodeIsDefinedWithDifferentEndLineOnly(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(6);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(15);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
 
@@ -167,16 +167,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeReturnsNodeFromDelegatorWhenReplacedNodeHadIdenticalStartAndEndLines(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(7);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(10);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         static::assertSame(
             $this->printedNode,
@@ -194,16 +194,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeRaisesExceptionWhenCurrentLineIsBeyondReplacedNodesStartLine(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(5);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(10);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(
@@ -215,16 +215,16 @@ class NewNodePrinterTest extends AbstractTestCase
 
     public function testPrintNodeRaisesExceptionWhenExitLineIsBeyondReplacedNodesEndLine(): void
     {
-        $replacedNode = mock(Node::class);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::START_LINE)
+        $modificationExtents = mock(CodeModificationExtentsInterface::class);
+        $modificationExtents->allows()
+            ->getStartLine()
             ->andReturn(6);
-        $replacedNode->allows()
-            ->getAttribute(NodeAttribute::END_LINE)
+        $modificationExtents->allows()
+            ->getEndLine()
             ->andReturn(9);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturn($replacedNode);
+        $this->extentResolver->allows()
+            ->resolveModificationExtents($this->node)
+            ->andReturn($modificationExtents);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage(

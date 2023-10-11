@@ -11,17 +11,18 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser;
+namespace Asmblah\PhpCodeShift\Attribute;
 
-use PhpParser\NodeVisitor;
+use Attribute;
 
 /**
- * Interface NodeVisitorInterface.
+ * Class Tockless.
  *
- * Handles processing of AST nodes.
+ * Specifies that a function or method should not have tocks applied.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface NodeVisitorInterface extends NodeVisitor
+#[Attribute(Attribute::TARGET_FUNCTION | Attribute::TARGET_METHOD)]
+class Tockless
 {
 }

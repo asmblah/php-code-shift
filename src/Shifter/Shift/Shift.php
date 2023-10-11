@@ -18,7 +18,7 @@ use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 
 /**
  * Class Shift.
@@ -54,7 +54,7 @@ class Shift implements ShiftInterface
      * @inheritDoc
      */
     public function configureTraversal(
-        AstTraverserInterface $astTraverser,
+        AstModificationTraverserInterface $astTraverser,
         ShiftContextInterface $shiftContext
     ): void {
         $this->delegatingShift->configureTraversal(

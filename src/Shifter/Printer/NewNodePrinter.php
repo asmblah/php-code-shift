@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Printer;
 
-use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
-use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolverInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Context\ModificationContextInterface;
+use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolverInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use LogicException;
 use PhpParser\Node;
 
@@ -29,7 +28,7 @@ use PhpParser\Node;
 class NewNodePrinter implements NewNodePrinterInterface
 {
     public function __construct(
-        private readonly NodeResolverInterface $nodeResolver,
+        private readonly ExtentResolverInterface $extentResolver,
         private readonly DelegatingNewNodePrinterInterface $delegatingNodePrinter
     ) {
     }
@@ -44,16 +43,20 @@ class NewNodePrinter implements NewNodePrinterInterface
     ): PrintedNodeInterface {
         $printedNode = $this->delegatingNodePrinter->printNode($node, $line, $modificationContext);
 
-        // Now look for a node that this AST node replaced; if there was one,
-        // then we must adjust the code output for this new node to maintain the original line number.
-        $replacedNode = $this->nodeResolver->extractReplacedNode($node);
+        /*
+         * Now look for the extents at which this modification should take place.
+         *
+         * If a node was replaced by this AST node, then we must adjust the code output
+         * for this new node to maintain the original line number.
+         */
+        $modificationExtents = $this->extentResolver->resolveModificationExtents($node);
 
-        if ($replacedNode !== null) {
-            $startLine = $replacedNode->getAttribute(NodeAttribute::START_LINE);
-            $endLine = $replacedNode->getAttribute(NodeAttribute::END_LINE);
+        if ($modificationExtents !== null) {
+            $startLine = $modificationExtents->getStartLine();
+            $endLine = $modificationExtents->getEndLine();
 
             $currentLine = $printedNode->getEndLine();
-            $replacementCode = $printedNode->getCode();
+            $modificationCode = $printedNode->getCode();
 
             if ($line > $startLine) {
                 throw new LogicException(
@@ -84,11 +87,11 @@ class NewNodePrinter implements NewNodePrinterInterface
                 $trailingLineDiscrepancy = $endLine - $currentLine;
                 $trailingPadding = str_repeat("\n", $trailingLineDiscrepancy);
 
-                $replacementCode = $leadingPadding . $replacementCode . $trailingPadding;
+                $modificationCode = $leadingPadding . $modificationCode . $trailingPadding;
                 $currentLine = $endLine; // Now that we've padded ourselves out to the correct end line.
 
-                // Create a new printed node that has been adjusted to align it with the replaced node's line.
-                $printedNode = new PrintedNode($replacementCode, $line, $currentLine);
+                // Create a new printed node that has been adjusted to align it with the modification extent's line.
+                $printedNode = new PrintedNode($modificationCode, $line, $currentLine);
             }
         }
 

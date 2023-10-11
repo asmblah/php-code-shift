@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\String;
 
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AbstractNodeVisitor;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\ModificationInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\NodeReplacedModification;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\AbstractNodeVisitor;
 use PhpParser\Node;
 
 /**
@@ -33,7 +35,7 @@ class StringLiteralVisitor extends AbstractNodeVisitor
     /**
      * Performs a find & replace inside all string literals.
      */
-    public function enterNode(Node $node)
+    public function enterNode(Node $node): ?ModificationInterface
     {
         if (
             $node instanceof Node\Scalar\String_ ||
@@ -45,7 +47,9 @@ class StringLiteralVisitor extends AbstractNodeVisitor
                 $node->value
             );
 
-            return new $node($replacedString);
+            $replacementNode = new $node($replacedString);
+
+            return new NodeReplacedModification($node, $replacementNode);
         }
 
         return null; // Leave the node unchanged.

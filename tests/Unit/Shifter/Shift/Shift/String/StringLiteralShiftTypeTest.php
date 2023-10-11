@@ -16,7 +16,7 @@ namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Shift\Shift\String;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralVisitor;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\AstTraverserInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery;
 use Mockery\MockInterface;
@@ -28,13 +28,13 @@ use Mockery\MockInterface;
  */
 class StringLiteralShiftTypeTest extends AbstractTestCase
 {
-    private MockInterface&AstTraverserInterface $astTraverser;
+    private MockInterface&AstModificationTraverserInterface $astTraverser;
     private MockInterface&StringLiteralShiftSpec $shiftSpec;
     private StringLiteralShiftType $shiftType;
 
     public function setUp(): void
     {
-        $this->astTraverser = mock(AstTraverserInterface::class);
+        $this->astTraverser = mock(AstModificationTraverserInterface::class);
         $this->shiftSpec = mock(StringLiteralShiftSpec::class, [
             'getNeedle' => 'my needle',
             'getReplacement' => 'my replacement',
