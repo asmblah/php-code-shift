@@ -65,7 +65,7 @@ class ModificationVisitorTest extends AbstractTestCase
         ]);
 
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($this->modificationExtents)
             ->byDefault();
         $this->modificationContext->allows()
@@ -93,7 +93,7 @@ class ModificationVisitorTest extends AbstractTestCase
     public function testEnterNodeReturnsNullWhenNoExtentsResolvedForNode(): void
     {
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturnNull();
 
         static::assertNull($this->visitor->enterNode($this->node));

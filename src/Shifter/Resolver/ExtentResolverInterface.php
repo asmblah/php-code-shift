@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Resolver;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node;
 
 /**
@@ -33,5 +34,8 @@ interface ExtentResolverInterface
      * - If it is an entirely new node, the extents of the slot it will be added at (with zero length)
      *   will be returned.
      */
-    public function resolveModificationExtents(Node $node): ?CodeModificationExtentsInterface;
+    public function resolveModificationExtents(
+        Node $node,
+        ModificationContextInterface $modificationContext
+    ): ?CodeModificationExtentsInterface;
 }

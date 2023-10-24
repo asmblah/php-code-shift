@@ -18,20 +18,19 @@ use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
 use PhpParser\Node;
 
 /**
- * Class InsertBeforeModification.
+ * Class InsertAsFirstChildModification.
  *
  * Indicates that the new node is itself unchanged and therefore should not be printed,
- * a child node has been added that should be inserted before another sibling.
+ * a child node has been added that should be inserted before any another sibling.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class InsertBeforeModification implements ModificationInterface
+class InsertAsFirstChildModification implements ModificationInterface
 {
     public function __construct(
         private readonly Node $originalParentNode,
         private readonly Node $replacementParentNode,
-        private readonly Node $newChildNode,
-        private readonly Node $nextSibling
+        private readonly Node $newChildNode
     ) {
     }
 
@@ -63,8 +62,8 @@ class InsertBeforeModification implements ModificationInterface
             NodeAttribute::END_LINE => null,
         ]);
 
-        $this->newChildNode->setAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::BEFORE_NODE);
-        $this->newChildNode->setAttribute(NodeAttribute::NEXT_SIBLING, $this->nextSibling);
+        $this->newChildNode->setAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::FIRST_CHILD);
+        $this->newChildNode->setAttribute(NodeAttribute::PARENT_NODE, $this->originalParentNode);
 
         return $this->replacementParentNode;
     }

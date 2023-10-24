@@ -27,6 +27,7 @@ interface NodeAttribute
     public const END_LINE = 'endLine';
     public const INSERTION_TYPE = self::PREFIX . 'insertionType';
     public const NEXT_SIBLING = self::PREFIX . 'nextSibling';
+    public const PARENT_NODE = self::PREFIX . 'parentNode';
     public const REPLACED_NODE = self::PREFIX . 'replacedNode';
     public const REPLACEMENT_NODE = self::PREFIX . 'replacementNode';
     public const START_FILE_POS = 'startFilePos';

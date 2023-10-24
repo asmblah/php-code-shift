@@ -76,7 +76,7 @@ class NewNodePrinterTest extends AbstractTestCase
             ->getEndLine()
             ->andReturn(15);
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
@@ -109,7 +109,7 @@ class NewNodePrinterTest extends AbstractTestCase
             ->getEndLine()
             ->andReturn(10);
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
@@ -142,7 +142,7 @@ class NewNodePrinterTest extends AbstractTestCase
             ->getEndLine()
             ->andReturn(15);
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($modificationExtents);
 
         $printedNode = $this->printer->printNode($this->node, 6, $this->modificationContext);
@@ -202,7 +202,7 @@ class NewNodePrinterTest extends AbstractTestCase
             ->getEndLine()
             ->andReturn(10);
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($modificationExtents);
 
         $this->expectException(LogicException::class);
@@ -223,7 +223,7 @@ class NewNodePrinterTest extends AbstractTestCase
             ->getEndLine()
             ->andReturn(9);
         $this->extentResolver->allows()
-            ->resolveModificationExtents($this->node)
+            ->resolveModificationExtents($this->node, $this->modificationContext)
             ->andReturn($modificationExtents);
 
         $this->expectException(LogicException::class);

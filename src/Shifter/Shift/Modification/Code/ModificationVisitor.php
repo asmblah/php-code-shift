@@ -42,7 +42,7 @@ class ModificationVisitor extends NodeVisitorAbstract
      */
     public function enterNode(Node $node)
     {
-        $modificationExtents = $this->extentResolver->resolveModificationExtents($node);
+        $modificationExtents = $this->extentResolver->resolveModificationExtents($node, $this->modificationContext);
 
         if ($modificationExtents === null) {
             // Early-out; no modification has been made such as this node replacing an earlier one.

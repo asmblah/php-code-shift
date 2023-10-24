@@ -57,8 +57,8 @@ class TockStatementShiftTypeTest extends AbstractTestCase
                 new Shift\Tock\TockStatementShiftSpec(function () {
                     return new Expression(
                         new StaticCall(
-                            new Name('My\Stuff\MyClass'),
-                            'myMethod'
+                            new Name('My\Stuff\MyTockHandler'),
+                            'tock'
                         )
                     );
                 }),
@@ -99,10 +99,69 @@ EOS,
 <?php
 function doubleIt(int $myNumber): int
 {
-    My\Stuff\MyClass::myMethod();return $myNumber * 2;
+    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 }
 
 return doubleIt(21);
+EOS,
+        ];
+
+        yield 'empty global function with no whitespace between braces' => [
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{}
+
+doNothing(21);
+EOS,
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{My\Stuff\MyTockHandler::tock();}
+
+doNothing(21);
+EOS,
+        ];
+
+        yield 'empty global function with whitespace between braces' => [
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{
+
+}
+
+doNothing(21);
+EOS,
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{
+
+My\Stuff\MyTockHandler::tock();}
+
+doNothing(21);
+EOS,
+        ];
+
+        yield 'empty global function with comment containing brace between braces' => [
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{
+/* This is my } comment */
+}
+
+doNothing(21);
+EOS,
+            <<<'EOS'
+<?php
+function doNothing(int $myNumber): void
+{
+/* This is my } comment */My\Stuff\MyTockHandler::tock();
+}
+
+doNothing(21);
 EOS,
         ];
 
@@ -118,7 +177,7 @@ EOS,
             <<<'EOS'
 <?php
 $doubleIt = function (int $myNumber): int {
-    My\Stuff\MyClass::myMethod();return $myNumber * 2;
+    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 };
 
 return $doubleIt(21);
@@ -144,7 +203,84 @@ class MyClass
 {
     public static function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyClass::myMethod();return $myNumber * 2;
+        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    }
+}
+
+return MyClass::doubleIt(21);
+EOS,
+        ];
+
+        yield 'empty static method with no whitespace between braces' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {}
+}
+
+return MyClass::doubleIt(21);
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {My\Stuff\MyTockHandler::tock();}
+}
+
+return MyClass::doubleIt(21);
+EOS,
+        ];
+
+        yield 'empty static method with whitespace between braces' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+
+    }
+}
+
+return MyClass::doubleIt(21);
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+
+    My\Stuff\MyTockHandler::tock();}
+}
+
+return MyClass::doubleIt(21);
+EOS,
+        ];
+
+        yield 'empty static method with comment containing brace between braces' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        /* This is my } comment */
+    }
+}
+
+return MyClass::doubleIt(21);
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        /* This is my } comment */My\Stuff\MyTockHandler::tock();
     }
 }
 
@@ -171,11 +307,116 @@ class MyClass
 {
     public function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyClass::myMethod();return $myNumber * 2;
+        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
     }
 }
 
 return (new MyClass)->doubleIt(21);
+EOS,
+        ];
+
+        yield 'static method of abstract class (shift still applies)' => [
+            <<<'EOS'
+<?php
+abstract class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        return $myNumber * 2;
+    }
+}
+
+return MyClass::doubleIt(21);
+EOS,
+            <<<'EOS'
+<?php
+abstract class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    }
+}
+
+return MyClass::doubleIt(21);
+EOS,
+        ];
+
+        yield 'instance method of abstract class (shift still applies)' => [
+            <<<'EOS'
+<?php
+abstract class MyClass
+{
+    public function doubleIt(int $myNumber): int
+    {
+        return $myNumber * 2;
+    }
+}
+
+return (new MyClass)->doubleIt(21);
+EOS,
+            <<<'EOS'
+<?php
+abstract class MyClass
+{
+    public function doubleIt(int $myNumber): int
+    {
+        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    }
+}
+
+return (new MyClass)->doubleIt(21);
+EOS,
+        ];
+
+        yield 'abstract static method (no shift applies)' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    abstract public static function doubleIt(int $myNumber): int;
+}
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    abstract public static function doubleIt(int $myNumber): int;
+}
+EOS,
+        ];
+
+        yield 'abstract instance method (no shift applies)' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    abstract public function doubleIt(int $myNumber): int;
+}
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    abstract public function doubleIt(int $myNumber): int;
+}
+EOS,
+        ];
+
+        yield 'interface method (no shift applies)' => [
+            <<<'EOS'
+<?php
+interface MyInterface
+{
+    public function doubleIt(int $myNumber): int;
+}
+EOS,
+            <<<'EOS'
+<?php
+interface MyInterface
+{
+    public function doubleIt(int $myNumber): int;
+}
 EOS,
         ];
 
@@ -194,7 +435,7 @@ EOS,
             <<<'EOS'
 <?php
 do {
-    My\Stuff\MyClass::myMethod();doFirstThing(
+    My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -217,7 +458,7 @@ EOS,
             <<<'EOS'
 <?php
 for ($i = 0; $i < 10; $i++) {
-    My\Stuff\MyClass::myMethod();doFirstThing(
+    My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -240,7 +481,7 @@ EOS,
             <<<'EOS'
 <?php
 foreach ($myList as $myKey => $myValue) {
-    My\Stuff\MyClass::myMethod();doFirstThing(
+    My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -263,7 +504,7 @@ EOS,
             <<<'EOS'
 <?php
 while (    $myCondition    ) {
-    My\Stuff\MyClass::myMethod();doFirstThing(
+    My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -300,10 +541,10 @@ EOS,
 
 function myFunction(): int
 {
-    My\Stuff\MyClass::myMethod();print 'Before';
+    My\Stuff\MyTockHandler::tock();print 'Before';
 
     while (    $myCondition    ) {
-        My\Stuff\MyClass::myMethod();doFirstThing(
+        My\Stuff\MyTockHandler::tock();doFirstThing(
             $arg1,
             $arg2
         );
@@ -343,7 +584,7 @@ use Asmblah\PhpCodeShift\Attribute\Tockless;
 
 function myTockedFunction(int $myNumber): int
 {
-    My\Stuff\MyClass::myMethod();return $myNumber * 2;
+    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 }
 
 #[Tockless]

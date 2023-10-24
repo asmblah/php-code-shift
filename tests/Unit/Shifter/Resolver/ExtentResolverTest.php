@@ -17,6 +17,7 @@ use Asmblah\PhpCodeShift\Shifter\Ast\InsertionType;
 use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
 use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolver;
 use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolverInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use LogicException;
 use Mockery\MockInterface;
@@ -30,11 +31,13 @@ use PhpParser\Node;
 class ExtentResolverTest extends AbstractTestCase
 {
     private ExtentResolver $extentResolver;
+    private MockInterface&ModificationContextInterface $modificationContext;
     private MockInterface&Node $node;
     private MockInterface&NodeResolverInterface $nodeResolver;
 
     public function setUp(): void
     {
+        $this->modificationContext = mock(ModificationContextInterface::class);
         $this->node = mock(Node::class);
         $this->nodeResolver = mock(NodeResolverInterface::class, [
             'extractReplacedNode' => null,
@@ -54,7 +57,7 @@ class ExtentResolverTest extends AbstractTestCase
             ->getAttribute(NodeAttribute::TRAVERSE_INSIDE, false)
             ->andReturn(true);
 
-        static::assertNull($this->extentResolver->resolveModificationExtents($this->node));
+        static::assertNull($this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext));
     }
 
     public function testResolveModificationExtentsReturnsExtentsMatchingAnExistingAstNode(): void
@@ -69,7 +72,7 @@ class ExtentResolverTest extends AbstractTestCase
             ->extractReplacedNode($this->node)
             ->andReturn($replacedNode);
 
-        $extents = $this->extentResolver->resolveModificationExtents($this->node);
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
 
         static::assertSame(21, $extents->getStartOffset());
         static::assertSame(7, $extents->getStartLine());
@@ -92,7 +95,7 @@ class ExtentResolverTest extends AbstractTestCase
             ->getAttribute(NodeAttribute::NEXT_SIBLING)
             ->andReturn($nextSibling);
 
-        $extents = $this->extentResolver->resolveModificationExtents($this->node);
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
 
         // Extents should be at the location just before the sibling.
         static::assertSame(200, $extents->getStartOffset());
@@ -120,7 +123,7 @@ class ExtentResolverTest extends AbstractTestCase
             ->extractReplacedNode($nextSibling)
             ->andReturn($replacedNextSibling);
 
-        $extents = $this->extentResolver->resolveModificationExtents($this->node);
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
 
         // Extents should be at the location just before the original/replaced sibling.
         static::assertSame(300, $extents->getStartOffset());
@@ -138,7 +141,7 @@ class ExtentResolverTest extends AbstractTestCase
             ->extractReplacedNode($this->node)
             ->andReturnNull();
 
-        static::assertNull($this->extentResolver->resolveModificationExtents($this->node));
+        static::assertNull($this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext));
     }
 
     public function testResolveModificationExtentsRaisesExceptionForBeforeNodeInsertionTypeWhenMissingNextSiblingAttribute(): void
@@ -153,7 +156,7 @@ class ExtentResolverTest extends AbstractTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Missing attribute ::NEXT_SIBLING for insertion type ::BEFORE_NODE');
 
-        $this->extentResolver->resolveModificationExtents($this->node);
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
     }
 
     public function testResolveModificationExtentsRaisesExceptionWhenInvalidInsertionType(): void
@@ -165,6 +168,6 @@ class ExtentResolverTest extends AbstractTestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Unknown insertion type "some-invalid-type"');
 
-        $this->extentResolver->resolveModificationExtents($this->node);
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
     }
 }

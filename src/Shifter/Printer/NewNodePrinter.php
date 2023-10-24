@@ -49,7 +49,7 @@ class NewNodePrinter implements NewNodePrinterInterface
          * If a node was replaced by this AST node, then we must adjust the code output
          * for this new node to maintain the original line number.
          */
-        $modificationExtents = $this->extentResolver->resolveModificationExtents($node);
+        $modificationExtents = $this->extentResolver->resolveModificationExtents($node, $modificationContext);
 
         if ($modificationExtents !== null) {
             $startLine = $modificationExtents->getStartLine();

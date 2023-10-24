@@ -15,6 +15,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\Tock;
 
 use Asmblah\PhpCodeShift\Attribute\Tockless;
 use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\InsertAsFirstChildModification;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\InsertBeforeModification;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\ModificationInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\AbstractNodeVisitor;
@@ -60,25 +61,19 @@ class TockSiteVisitor extends AbstractNodeVisitor
         }
 
         if (
-            // Function-likes.
-            $node instanceof Node\Stmt\ClassMethod ||
-            $node instanceof Node\Expr\Closure ||
-            $node instanceof Node\Stmt\Function_ ||
-
             // Loop structures.
             $node instanceof Node\Stmt\Do_||
             $node instanceof Node\Stmt\For_ ||
             $node instanceof Node\Stmt\Foreach_ ||
-            $node instanceof Node\Stmt\While_
+            $node instanceof Node\Stmt\While_ ||
+
+            // Function-likes.
+            $node instanceof Node\Expr\Closure ||
+            $node instanceof Node\Stmt\Function_ ||
+            ($node instanceof Node\Stmt\ClassMethod && $node->stmts !== null) // Exclude abstract or interface methods.
         ) {
             $replacementNode = clone $node;
             $tockStatementNode = $this->shiftSpec->createStatementNode();
-
-            if (count($replacementNode->stmts) === 0) {
-                throw new RuntimeException('FIXME: No next sibling, use previousSibling instead?');
-            }
-
-            $nextSibling = $replacementNode->stmts[0];
 
             array_unshift($replacementNode->stmts, $tockStatementNode);
 
@@ -87,11 +82,10 @@ class TockSiteVisitor extends AbstractNodeVisitor
 
             // Only the tock statement added is new, so use a InsertBeforeModification
             // to indicate that we do not want to re-print the node itself.
-            return new InsertBeforeModification(
+            return new InsertAsFirstChildModification(
                 $node,
                 $replacementNode,
-                $tockStatementNode,
-                $nextSibling
+                $tockStatementNode
             );
         }
 

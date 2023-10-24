@@ -25,25 +25,30 @@ class TockHandler extends AbstractTestCase
     /**
      * @var array<string>
      */
-    private static array $calls = [];
+    private static array $logs = [];
 
     /**
      * @return array<string>
      */
-    public static function getCalls(): array
+    public static function getLogs(): array
     {
-        return self::$calls;
+        return self::$logs;
+    }
+
+    public static function log(string $log): void
+    {
+        self::$logs[] = 'log() :: ' . $log;
     }
 
     public static function reset(): void
     {
-        self::$calls = [];
+        self::$logs = [];
     }
 
     public static function tock(): void
     {
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
 
-        self::$calls[] = $backtrace[1]['function'];
+        self::$logs[] = 'tock() :: ' . $backtrace[1]['function'] . ' @ line ' . $backtrace[0]['line'];
     }
 }

@@ -15,8 +15,10 @@ namespace Asmblah\PhpCodeShift\Shifter\Resolver;
 
 use Asmblah\PhpCodeShift\Shifter\Ast\InsertionType;
 use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
+use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use LogicException;
 use PhpParser\Node;
+use PhpParser\Node\Stmt;
 
 /**
  * Class ExtentResolver.
@@ -36,8 +38,10 @@ class ExtentResolver implements ExtentResolverInterface
     /**
      * @inheritDoc
      */
-    public function resolveModificationExtents(Node $node): ?CodeModificationExtentsInterface
-    {
+    public function resolveModificationExtents(
+        Node $node,
+        ModificationContextInterface $modificationContext
+    ): ?CodeModificationExtentsInterface {
         if ($node->getAttribute(NodeAttribute::TRAVERSE_INSIDE, false)) {
             // Early-out; node was replaced but is to be traversed inside.
             // This is used to keep AST nodes immutable while allowing descendants to be changed.
@@ -79,7 +83,72 @@ class ExtentResolver implements ExtentResolverInterface
 
                 return new CodeModificationExtents($offset, $line, $offset, $line);
             case InsertionType::FIRST_CHILD:
-                throw new LogicException('Insertion type ::FIRST_CHILD not yet supported');
+                $parentNode = $node->getAttribute(NodeAttribute::PARENT_NODE);
+
+                if ($parentNode === null) {
+                    throw new LogicException(
+                        'Missing attribute ::PARENT_NODE for insertion type ::FIRST_CHILD'
+                    );
+                }
+
+                if (!$parentNode instanceof Node) {
+                    throw new LogicException('Parent node is not a valid AST node');
+                }
+
+                if (!property_exists($parentNode, 'stmts')) {
+                    throw new LogicException('Parent node does not have child ->stmts');
+                }
+
+                /** @var Stmt|null $nextSibling */
+                $nextSibling = null;
+
+                foreach ($parentNode->stmts as $statementNode) {
+                    if ($statementNode === $node) {
+                        continue; // Ignore the new child node.
+                    }
+
+                    $nextSibling = $this->nodeResolver->extractReplacedNode($statementNode) ?? $statementNode;
+                    break;
+                }
+
+                if ($nextSibling !== null) {
+                    // Insert the new node just before its new next sibling.
+                    $line = $nextSibling->getStartLine();
+                    $offset = $nextSibling->getStartFilePos();
+
+                    if ($line === -1 || $offset === -1) {
+                        throw new LogicException('Cannot resolve sibling extents');
+                    }
+                } else {
+                    // Otherwise there is no sibling to insert just before, so we need to find the closing brace
+                    // of the parent block node.
+
+                    $position = $parentNode->getEndFilePos();
+
+                    if ($position === -1) {
+                        throw new LogicException('Parent node is missing end file position');
+                    }
+
+                    /*
+                     * There could be comments containing braces inside the empty parent node,
+                     * so just find the closing brace rather than having to handle comments
+                     * in order to find the opening brace.
+                     */
+                    $offset = strrpos(
+                        $modificationContext->getContents(),
+                        '}',
+                        // Use a negative offset so that the reverse search looks left of the computed offset.
+                        $position + $modificationContext->getDelta() - strlen($modificationContext->getContents())
+                    );
+
+                    if ($offset === false) {
+                        throw new LogicException('Cannot find closing brace of parent node');
+                    }
+
+                    $line = $parentNode->getEndLine();
+                }
+
+                return new CodeModificationExtents($offset, $line, $offset, $line);
             case InsertionType::NONE:
                 // Node is original, so there is no modification to make.
                 return null;
