@@ -16,7 +16,7 @@ namespace Asmblah\PhpCodeShift\Tests\Functional;
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\MultipleFilter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringShiftSpec;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 
 /**
@@ -26,8 +26,8 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
  */
 class NonIncludeFilesystemAccessTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
-    private ?string $varPath;
+    private CodeShift $codeShift;
+    private string $varPath;
 
     public function setUp(): void
     {
@@ -37,7 +37,7 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
         $this->codeShift = new CodeShift();
 
         $this->codeShift->shift(
-            new StringShiftSpec(
+            new StringLiteralShiftSpec(
                 'mystring',
                 'yourstring'
             ),

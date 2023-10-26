@@ -13,13 +13,13 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Shift\Shift\FunctionHook;
 
-use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\CallVisitor;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftSpec;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use Mockery;
 use Mockery\MockInterface;
-use PhpParser\Parser;
-use PhpParser\ParserFactory as LibraryParserFactory;
 
 /**
  * Class FunctionHookShiftTypeTest.
@@ -28,69 +28,31 @@ use PhpParser\ParserFactory as LibraryParserFactory;
  */
 class FunctionHookShiftTypeTest extends AbstractTestCase
 {
-    private ?Parser $parser;
-    /**
-     * @var (MockInterface&FunctionHookShiftSpec)|null
-     */
-    private $shiftSpec;
-    private ?FunctionHookShiftType $shiftType;
+    private MockInterface&AstModificationTraverserInterface $astTraverser;
+    private MockInterface&FunctionHookShiftSpec $shiftSpec;
+    private FunctionHookShiftType $shiftType;
 
     public function setUp(): void
     {
-        $this->parser = (new ParserFactory(new LibraryParserFactory()))->createParser();
+        $this->astTraverser = mock(AstModificationTraverserInterface::class);
         $this->shiftSpec = mock(FunctionHookShiftSpec::class, [
             'getFunctionName' => 'myFunc',
         ]);
 
-        $this->shiftType = new FunctionHookShiftType($this->parser);
+        $this->shiftType = new FunctionHookShiftType();
     }
 
-    public function testShiftHooksTheSpecifiedFunctionWhenCalledOnceWithNoArguments(): void
+    public function testConfigureTraversalAddsACallVisitor(): void
     {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print myFunc();');
+        $this->astTraverser->expects()
+            ->addVisitor(Mockery::type(CallVisitor::class))
+            ->once();
 
-        static::assertSame('<?php print \Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc();', $result);
+        $this->shiftType->configureTraversal($this->shiftSpec, $this->astTraverser);
     }
 
-    public function testShiftHooksTheSpecifiedFunctionWhenCalledOnceWithTwoArguments(): void
+    public function testGetShiftSpecFqcnReturnsCorrectFqcn(): void
     {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print myFunc(21, "hello");');
-
-        static::assertSame('<?php print \Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc(21, "hello");', $result);
-    }
-
-    public function testShiftHooksTheSpecifiedFunctionWhenCalledTwiceSeparately(): void
-    {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print myFunc(); echo myFunc();');
-
-        static::assertSame(
-            '<?php print \Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc(); ' .
-            'echo \Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc();',
-            $result
-        );
-    }
-
-    public function testShiftHooksTheSpecifiedFunctionWhenCalledTwiceNested(): void
-    {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print myFunc(myFunc());');
-
-        static::assertSame(
-            '<?php print \Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc(\Asmblah\PhpCodeShift\Shifter\Hook\Invoker::myFunc());',
-            $result
-        );
-    }
-
-    public function testShiftReturnsStringUnchangedWhenNoFunctionIsCalled(): void
-    {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print 21;');
-
-        static::assertSame('<?php print 21;', $result);
-    }
-
-    public function testShiftReturnsStringUnchangedWhenADifferentFunctionIsCalled(): void
-    {
-        $result = $this->shiftType->shift($this->shiftSpec, '<?php print yourFunc();');
-
-        static::assertSame('<?php print yourFunc();', $result);
+        static::assertSame(FunctionHookShiftSpec::class, $this->shiftType->getShiftSpecFqcn());
     }
 }

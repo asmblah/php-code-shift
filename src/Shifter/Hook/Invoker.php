@@ -22,7 +22,10 @@ namespace Asmblah\PhpCodeShift\Shifter\Hook;
  */
 class Invoker
 {
-    public static function __callStatic(string $name, array $args)
+    /**
+     * @param array<mixed> $args
+     */
+    public static function __callStatic(string $name, array $args): mixed
     {
         return FunctionHooks::callFunction($name, $args);
     }

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use InvalidArgumentException;
 
 /**
@@ -26,23 +28,20 @@ use InvalidArgumentException;
  */
 class DelegatingShift implements DelegatingShiftInterface
 {
-    private array $shiftSpecFqcnToShifterCallable = [];
-    private bool $shifting = false;
+    /**
+     * @var array<string, callable>
+     */
+    private array $shiftSpecFqcnToConfigurerCallable = [];
 
     /**
      * @inheritDoc
      */
-    public function registerShiftType(ShiftTypeInterface $shiftType): void
-    {
-        $this->shiftSpecFqcnToShifterCallable[$shiftType->getShiftSpecFqcn()] = $shiftType->getShifter();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function shift(ShiftSpecInterface $shiftSpec, string $contents): string
-    {
-        if (!array_key_exists($shiftSpec::class, $this->shiftSpecFqcnToShifterCallable)) {
+    public function configureTraversal(
+        ShiftSpecInterface $shiftSpec,
+        AstModificationTraverserInterface $astTraverser,
+        ShiftContextInterface $shiftContext
+    ): void {
+        if (!array_key_exists($shiftSpec::class, $this->shiftSpecFqcnToConfigurerCallable)) {
             throw new InvalidArgumentException(
                 sprintf(
                     '%s :: No shift registered for spec of type %s',
@@ -52,18 +51,16 @@ class DelegatingShift implements DelegatingShiftInterface
             );
         }
 
-        if ($this->shifting) {
-            // Don't attempt to perform shifts while we're already in the process
-            // of shifting a file, to prevent recursion.
-            return $contents;
-        }
+        $configurerCallable = $this->shiftSpecFqcnToConfigurerCallable[$shiftSpec::class];
 
-        $this->shifting = true;
+        $configurerCallable($shiftSpec, $astTraverser, $shiftContext);
+    }
 
-        try {
-            return $this->shiftSpecFqcnToShifterCallable[$shiftSpec::class]($shiftSpec, $contents);
-        } finally {
-            $this->shifting = false;
-        }
+    /**
+     * @inheritDoc
+     */
+    public function registerShiftType(ShiftTypeInterface $shiftType): void
+    {
+        $this->shiftSpecFqcnToConfigurerCallable[$shiftType->getShiftSpecFqcn()] = $shiftType->getConfigurer();
     }
 }

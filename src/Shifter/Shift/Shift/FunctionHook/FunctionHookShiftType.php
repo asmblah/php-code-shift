@@ -13,10 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook;
 
-use Asmblah\PhpCodeShift\Shifter\Modifier\Context;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
-use PhpParser\NodeTraverser;
-use PhpParser\Parser;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 
 /**
  * Class FunctionHookShiftType.
@@ -28,17 +26,22 @@ use PhpParser\Parser;
  */
 class FunctionHookShiftType implements ShiftTypeInterface
 {
-    public function __construct(
-        private readonly Parser $parser
-    ) {
+    /**
+     * Configures the traversal for this shift.
+     */
+    public function configureTraversal(
+        FunctionHookShiftSpec $shiftSpec,
+        AstModificationTraverserInterface $astTraverser
+    ): void {
+        $astTraverser->addVisitor(new CallVisitor($shiftSpec));
     }
 
     /**
      * @inheritDoc
      */
-    public function getShifter(): callable
+    public function getConfigurer(): callable
     {
-        return $this->shift(...);
+        return $this->configureTraversal(...);
     }
 
     /**
@@ -47,35 +50,5 @@ class FunctionHookShiftType implements ShiftTypeInterface
     public function getShiftSpecFqcn(): string
     {
         return FunctionHookShiftSpec::class;
-    }
-
-    /**
-     * Applies the shift to the contents.
-     */
-    public function shift(FunctionHookShiftSpec $shiftSpec, string $contents): string
-    {
-        $nodeTraverser = new NodeTraverser();
-
-        $callVisitor = new CallVisitor($shiftSpec);
-        $nodeTraverser->addVisitor($callVisitor);
-
-        $ast = $this->parser->parse($contents);
-
-        $nodeTraverser->traverse($ast);
-
-        $modifications = $callVisitor->getModifications();
-
-        if (empty($modifications)) {
-            // Don't regenerate the file if nothing was changed.
-            return $contents;
-        }
-
-        $context = new Context();
-
-        foreach ($modifications as $modification) {
-            $contents = $modification->perform($contents, $context);
-        }
-
-        return $contents;
     }
 }

@@ -22,7 +22,15 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift;
  */
 interface ShiftCollectionInterface
 {
+    /**
+     * Adds a shift to the collection.
+     */
     public function addShift(ShiftInterface $shift): void;
+
+    /**
+     * Removes all shifts from the collection.
+     */
+    public function clear(): void;
 
     /**
      * Fetches all shifts in the collection.

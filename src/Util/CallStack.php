@@ -41,7 +41,7 @@ class CallStack implements CallStackInterface
             }
 
             if (!array_key_exists('class', $frame)) {
-                $functionName = $frame['function'] ?? null;
+                $functionName = $frame['function'];
 
                 if (in_array($functionName, ['include', 'include_once', 'require', 'require_once'], true)) {
                     return $functionName;

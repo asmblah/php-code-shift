@@ -66,6 +66,8 @@ interface StreamHandlerInterface
 
     /**
      * Casts this stream to a resource.
+     *
+     * @return resource
      */
     public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs);
 
@@ -124,6 +126,8 @@ interface StreamHandlerInterface
 
     /**
      * Performs a stat of the given open stream.
+     *
+     * @return array<mixed>|false
      */
     public function streamStat(StreamWrapperInterface $streamWrapper): array|false;
 
@@ -149,6 +153,8 @@ interface StreamHandlerInterface
 
     /**
      * Performs a filesystem stat of the given path.
+     *
+     * @return array<mixed>|false
      */
     public function urlStat(string $path, int $flags): array|false;
 

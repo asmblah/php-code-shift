@@ -38,6 +38,14 @@ class ShiftCollection implements ShiftCollectionInterface
     /**
      * @inheritDoc
      */
+    public function clear(): void
+    {
+        $this->shifts = [];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getShifts(): array
     {
         return $this->shifts;

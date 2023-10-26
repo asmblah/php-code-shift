@@ -17,19 +17,17 @@ use Asmblah\PhpCodeShift\Shifter\Filter\DenyList;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
-use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
-use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactoryInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringShiftType;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftType;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\Tock\TockStatementShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
 use Asmblah\PhpCodeShift\Shifter\ShifterInterface;
-use PhpParser\ParserFactory as LibraryParserFactory;
 
 /**
  * Class CodeShift.
@@ -46,7 +44,6 @@ class CodeShift implements CodeShiftInterface
 
     public function __construct(
         ?DenyListInterface $denyList = null,
-        ?ParserFactoryInterface $parserFactory = null,
         ?DelegatingShiftInterface $delegatingShift = null,
         ?ShifterInterface $shifter = null
     ) {
@@ -54,22 +51,15 @@ class CodeShift implements CodeShiftInterface
             $denyList = new DenyList();
 
             // Never transpile the source of PHP Code Shift itself.
-            $denyList->addFilter(new FileFilter(realpath(__DIR__ . '/..') . '/src/**'));
-        }
-
-        if ($parserFactory === null) {
-            $parserFactory = new ParserFactory(new LibraryParserFactory());
+            $denyList->addFilter(new FileFilter(dirname(__DIR__) . '/src/**'));
         }
 
         if ($delegatingShift === null) {
             $delegatingShift = new DelegatingShift();
 
-            $delegatingShift->registerShiftType(
-                new FunctionHookShiftType(
-                    $parserFactory->createParser()
-                )
-            );
-            $delegatingShift->registerShiftType(new StringShiftType());
+            $delegatingShift->registerShiftType(new FunctionHookShiftType());
+            $delegatingShift->registerShiftType(new StringLiteralShiftType());
+            $delegatingShift->registerShiftType(new TockStatementShiftType());
         }
 
         $this->delegatingShift = $delegatingShift;
@@ -128,5 +118,7 @@ class CodeShift implements CodeShiftInterface
     public function uninstall(): void
     {
         $this->shifter->uninstall();
+
+        $this->denyList->clear();
     }
 }

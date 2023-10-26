@@ -28,7 +28,9 @@ interface ShiftSetInterface
     public function getPath(): string;
 
     /**
-     * Performs all shifts in the set against the given contents, returning the shifted result.
+     * Fetches all shifts in the set.
+     *
+     * @return ShiftInterface[]
      */
-    public function shift(string $contents): string;
+    public function getShifts(): array;
 }

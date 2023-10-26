@@ -14,13 +14,11 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Tests\Functional\Util;
 
 use Asmblah\PhpCodeShift\CodeShift;
-use Asmblah\PhpCodeShift\Shifter\Stream\Handler\AbstractStreamHandlerDecorator;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandlerInterface;
-use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use Asmblah\PhpCodeShift\Tests\Functional\Harness\StreamHandler\CallStackTestStreamHandler;
 use Asmblah\PhpCodeShift\Util\CallStack;
-use Asmblah\PhpCodeShift\Util\CallStackInterface;
 
 /**
  * Class CallStackTest.
@@ -29,58 +27,20 @@ use Asmblah\PhpCodeShift\Util\CallStackInterface;
  */
 class CallStackTest extends AbstractTestCase
 {
-    private ?CallStack $callStack;
-    private ?CodeShift $codeShift;
-    private ?StreamHandlerInterface $originalStreamHandler;
-    private ?StreamHandlerInterface $customStreamHandler;
+    private CallStack $callStack;
+    private CodeShift $codeShift;
+    private StreamHandlerInterface $originalStreamHandler;
+    private CallStackTestStreamHandler $customStreamHandler;
 
     public function setUp(): void
     {
         $this->callStack = new CallStack();
         $this->originalStreamHandler = StreamWrapperManager::getStreamHandler();
 
-        $this->customStreamHandler = new class(
+        $this->customStreamHandler = new CallStackTestStreamHandler(
             $this->originalStreamHandler,
             $this->callStack
-        ) extends AbstractStreamHandlerDecorator {
-            private ?string $nativeFunctionName = null;
-
-            public function __construct(
-                StreamHandlerInterface $wrappedStreamHandler,
-                private readonly CallStackInterface $callStack
-            ) {
-                parent::__construct($wrappedStreamHandler);
-            }
-
-            public function getNativeFunctionName(): string
-            {
-                return $this->nativeFunctionName;
-            }
-
-            /**
-             * @inheritDoc
-             */
-            public function streamOpen(StreamWrapperInterface $streamWrapper, string $path, string $mode, int $options, ?string &$openedPath)
-            {
-                if ($this->nativeFunctionName === null) {
-                    $this->nativeFunctionName = $this->callStack->getNativeFunctionName();
-                }
-
-                return parent::streamOpen($streamWrapper, $path, $mode, $options, $openedPath);
-            }
-
-            /**
-             * @inheritDoc
-             */
-            public function urlStat(string $path, int $flags): array|false
-            {
-                if ($this->nativeFunctionName === null) {
-                    $this->nativeFunctionName = $this->callStack->getNativeFunctionName();
-                }
-
-                return parent::urlStat($path, $flags);
-            }
-        };
+        );
         StreamWrapperManager::setStreamHandler($this->customStreamHandler);
 
         $this->codeShift = new CodeShift();
@@ -107,6 +67,9 @@ class CallStackTest extends AbstractTestCase
         static::assertSame($functionName, $this->customStreamHandler->getNativeFunctionName());
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public static function statBasedFunctionNameProvider(): array
     {
         return [

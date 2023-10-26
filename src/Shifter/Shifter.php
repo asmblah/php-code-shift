@@ -40,7 +40,6 @@ class Shifter implements ShifterInterface
         $this->shiftCollection->addShift($shift);
 
         $shift->init();
-
     }
 
     /**
@@ -67,6 +66,8 @@ class Shifter implements ShifterInterface
     public function uninstall(): void
     {
         StreamWrapperManager::uninstallShiftCollection($this->shiftCollection);
+
+        $this->shiftCollection->clear();
 
         $this->installed = false;
     }

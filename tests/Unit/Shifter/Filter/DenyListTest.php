@@ -24,11 +24,25 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
  */
 class DenyListTest extends AbstractTestCase
 {
-    private ?DenyList $denyList;
+    private DenyList $denyList;
 
     public function setUp(): void
     {
         $this->denyList = new DenyList();
+    }
+
+    public function testClearRemovesAllFilters(): void
+    {
+        $filter = mock(FileFilterInterface::class);
+        $filter->allows()
+            ->fileMatches('/my/path.php')
+            ->andReturn(true);
+        $this->denyList->addFilter($filter);
+
+        $this->denyList->clear();
+
+        // Would have been allowed had we not cleared the list just above.
+        static::assertFalse($this->denyList->fileMatches('/my/path.php'));
     }
 
     public function testFileMatchesReturnsFalseWhenThereAreNoFiltersInTheList(): void

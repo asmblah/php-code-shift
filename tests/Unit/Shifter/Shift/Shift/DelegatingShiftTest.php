@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Shift\Shift;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use InvalidArgumentException;
+use Mockery\MockInterface;
 
 /**
  * Class DelegatingShiftTest.
@@ -26,40 +29,43 @@ use InvalidArgumentException;
  */
 class DelegatingShiftTest extends AbstractTestCase
 {
-    private ?DelegatingShift $delegatingShift;
+    private MockInterface&AstModificationTraverserInterface $astTraverser;
+    private DelegatingShift $delegatingShift;
+    private MockInterface&ShiftContextInterface $shiftContext;
 
     public function setUp(): void
     {
+        $this->astTraverser = mock(AstModificationTraverserInterface::class);
+        $this->shiftContext = mock(ShiftContextInterface::class);
+
         $this->delegatingShift = new DelegatingShift();
     }
 
-    public function testShiftThrowsWhenNoShiftIsRegisteredForSpec(): void
+    public function testConfigureTraversalThrowsWhenNoShiftIsRegisteredForSpec(): void
     {
         $spec = mock(ShiftSpecInterface::class);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage(':: No shift registered for spec of type ' . $spec::class);
 
-        $this->delegatingShift->shift($spec, 'my contents');
+        $this->delegatingShift->configureTraversal($spec, $this->astTraverser, $this->shiftContext);
     }
 
-    public function testShiftReturnsContentsUnchangedWhenAlreadyShifting(): void
+    public function testConfigureTraversalInvokesTheConfigurerCallableForTheShift(): void
     {
         $shiftSpec = mock(ShiftSpecInterface::class);
         $shiftType = mock(ShiftTypeInterface::class);
-        $shiftType->allows('getShifter')
-            ->andReturn(function () {
-                $secondShiftSpec = mock(ShiftSpecInterface::class);
-
-                return $this->delegatingShift->shift($secondShiftSpec, 'second contents');
-            });
+        $configurerCallable = spy();
+        $shiftType->allows('getConfigurer')
+            ->andReturn($configurerCallable->__invoke(...));
         $shiftType->allows('getShiftSpecFqcn')
             ->andReturn($shiftSpec::class);
         $this->delegatingShift->registerShiftType($shiftType);
 
-        static::assertSame(
-            'second contents',
-            $this->delegatingShift->shift($shiftSpec, 'my contents')
-        );
+        $configurerCallable->expects()
+            ->__invoke($shiftSpec, $this->astTraverser, $this->shiftContext)
+            ->once();
+
+        $this->delegatingShift->configureTraversal($shiftSpec, $this->astTraverser, $this->shiftContext);
     }
 }

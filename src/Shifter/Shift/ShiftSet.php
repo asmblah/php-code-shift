@@ -42,12 +42,8 @@ class ShiftSet implements ShiftSetInterface
     /**
      * @inheritDoc
      */
-    public function shift(string $contents): string
+    public function getShifts(): array
     {
-        foreach ($this->shifts as $shift) {
-            $contents = $shift->shift($contents);
-        }
-
-        return $contents;
+        return $this->shifts;
     }
 }

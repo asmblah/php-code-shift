@@ -23,15 +23,21 @@ namespace Asmblah\PhpCodeShift\Shifter\Hook;
  */
 class FunctionHooks
 {
+    /**
+     * @var array<string, callable>
+     */
     private static array $hooks = [];
 
+    /**
+     * @param array<mixed> $args
+     */
     public static function callFunction(string $functionName, array $args): mixed
     {
-        return static::$hooks[$functionName](...$args);
+        return self::$hooks[$functionName](...$args);
     }
 
     public static function installHook(string $functionName, callable $implementation): void
     {
-        static::$hooks[$functionName] = $implementation;
+        self::$hooks[$functionName] = $implementation;
     }
 }

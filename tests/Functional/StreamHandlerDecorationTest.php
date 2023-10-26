@@ -28,8 +28,8 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
  */
 class StreamHandlerDecorationTest extends AbstractTestCase
 {
-    private ?CodeShift $codeShift;
-    private ?StreamHandlerInterface $originalStreamHandler;
+    private CodeShift $codeShift;
+    private StreamHandlerInterface $originalStreamHandler;
 
     public function setUp(): void
     {

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 
+use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContextInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverserInterface;
 
 /**
  * Interface DelegatingShiftInterface.
@@ -26,12 +28,16 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 interface DelegatingShiftInterface
 {
     /**
+     * Configures the traversal for the relevant shift.
+     */
+    public function configureTraversal(
+        ShiftSpecInterface $shiftSpec,
+        AstModificationTraverserInterface $astTraverser,
+        ShiftContextInterface $shiftContext
+    ): void;
+
+    /**
      * Registers the given type of shift.
      */
     public function registerShiftType(ShiftTypeInterface $shiftType): void;
-
-    /**
-     * Applies the relevant shift.
-     */
-    public function shift(ShiftSpecInterface $shiftSpec, string $contents): string;
 }
