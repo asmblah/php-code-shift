@@ -38,6 +38,14 @@ class DenyList implements DenyListInterface
     /**
      * @inheritDoc
      */
+    public function clear(): void
+    {
+        $this->filters = [];
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function fileMatches(string $path): bool
     {
         foreach ($this->filters as $filter) {

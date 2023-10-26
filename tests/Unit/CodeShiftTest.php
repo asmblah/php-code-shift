@@ -41,12 +41,14 @@ class CodeShiftTest extends AbstractTestCase
     {
         $this->delegatingShift = mock(DelegatingShiftInterface::class);
         $this->denyList = mock(DenyListInterface::class, [
+            'clear' => null,
             'fileMatches' => false,
         ]);
         $this->shifter = mock(ShifterInterface::class, [
             'addShift' => null,
             'install' => null,
             'isInstalled' => false,
+            'uninstall' => null,
         ]);
 
         $this->codeShift = new CodeShift(
@@ -135,6 +137,15 @@ class CodeShiftTest extends AbstractTestCase
     {
         $this->shifter->expects()
             ->uninstall()
+            ->once();
+
+        $this->codeShift->uninstall();
+    }
+
+    public function testUninstallClearsTheDenyList(): void
+    {
+        $this->denyList->expects()
+            ->clear()
             ->once();
 
         $this->codeShift->uninstall();

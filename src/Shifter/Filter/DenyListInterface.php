@@ -26,4 +26,9 @@ interface DenyListInterface extends FileFilterInterface
      * Adds a new filter for files that should never be transpiled.
      */
     public function addFilter(FileFilterInterface $filter): void;
+
+    /**
+     * Removes all filters from the deny list.
+     */
+    public function clear(): void;
 }

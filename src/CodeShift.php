@@ -118,5 +118,7 @@ class CodeShift implements CodeShiftInterface
     public function uninstall(): void
     {
         $this->shifter->uninstall();
+
+        $this->denyList->clear();
     }
 }

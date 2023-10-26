@@ -31,6 +31,20 @@ class DenyListTest extends AbstractTestCase
         $this->denyList = new DenyList();
     }
 
+    public function testClearRemovesAllFilters(): void
+    {
+        $filter = mock(FileFilterInterface::class);
+        $filter->allows()
+            ->fileMatches('/my/path.php')
+            ->andReturn(true);
+        $this->denyList->addFilter($filter);
+
+        $this->denyList->clear();
+
+        // Would have been allowed had we not cleared the list just above.
+        static::assertFalse($this->denyList->fileMatches('/my/path.php'));
+    }
+
     public function testFileMatchesReturnsFalseWhenThereAreNoFiltersInTheList(): void
     {
         static::assertFalse($this->denyList->fileMatches('/my/path.php'));
