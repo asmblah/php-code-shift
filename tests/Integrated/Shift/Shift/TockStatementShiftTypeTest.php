@@ -57,7 +57,7 @@ class TockStatementShiftTypeTest extends AbstractTestCase
                 new Shift\Tock\TockStatementShiftSpec(function () {
                     return new Expression(
                         new StaticCall(
-                            new Name('My\Stuff\MyTockHandler'),
+                            new Name('\My\Stuff\MyTockHandler'),
                             'tock'
                         )
                     );
@@ -99,7 +99,7 @@ EOS,
 <?php
 function doubleIt(int $myNumber): int
 {
-    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 }
 
 return doubleIt(21);
@@ -117,7 +117,7 @@ EOS,
             <<<'EOS'
 <?php
 function doNothing(int $myNumber): void
-{My\Stuff\MyTockHandler::tock();}
+{\My\Stuff\MyTockHandler::tock();}
 
 doNothing(21);
 EOS,
@@ -138,7 +138,7 @@ EOS,
 function doNothing(int $myNumber): void
 {
 
-My\Stuff\MyTockHandler::tock();}
+\My\Stuff\MyTockHandler::tock();}
 
 doNothing(21);
 EOS,
@@ -158,7 +158,7 @@ EOS,
 <?php
 function doNothing(int $myNumber): void
 {
-/* This is my } comment */My\Stuff\MyTockHandler::tock();
+/* This is my } comment */\My\Stuff\MyTockHandler::tock();
 }
 
 doNothing(21);
@@ -177,7 +177,7 @@ EOS,
             <<<'EOS'
 <?php
 $doubleIt = function (int $myNumber): int {
-    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 };
 
 return $doubleIt(21);
@@ -203,7 +203,7 @@ class MyClass
 {
     public static function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
     }
 }
 
@@ -227,7 +227,7 @@ EOS,
 class MyClass
 {
     public static function doubleIt(int $myNumber): int
-    {My\Stuff\MyTockHandler::tock();}
+    {\My\Stuff\MyTockHandler::tock();}
 }
 
 return MyClass::doubleIt(21);
@@ -254,7 +254,7 @@ class MyClass
     public static function doubleIt(int $myNumber): int
     {
 
-    My\Stuff\MyTockHandler::tock();}
+    \My\Stuff\MyTockHandler::tock();}
 }
 
 return MyClass::doubleIt(21);
@@ -280,7 +280,7 @@ class MyClass
 {
     public static function doubleIt(int $myNumber): int
     {
-        /* This is my } comment */My\Stuff\MyTockHandler::tock();
+        /* This is my } comment */\My\Stuff\MyTockHandler::tock();
     }
 }
 
@@ -307,7 +307,7 @@ class MyClass
 {
     public function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
     }
 }
 
@@ -334,7 +334,7 @@ abstract class MyClass
 {
     public static function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
     }
 }
 
@@ -361,13 +361,198 @@ abstract class MyClass
 {
     public function doubleIt(int $myNumber): int
     {
-        My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
     }
 }
 
 return (new MyClass)->doubleIt(21);
 EOS,
         ];
+
+        yield 'empty constructor method alone' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function __construct()
+    {
+    }
+}
+
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function __construct()
+    {
+    \My\Stuff\MyTockHandler::tock();}
+}
+
+EOS,
+        ];
+
+        yield 'instance method followed by empty instance method' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function myFirstMethod(): int
+    {
+        return 21;
+    }
+
+    public function myEmptyMethod(int $myParam)
+    {
+    }
+}
+
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function myFirstMethod(): int
+    {
+        \My\Stuff\MyTockHandler::tock();return 21;
+    }
+
+    public function myEmptyMethod(int $myParam)
+    {
+    \My\Stuff\MyTockHandler::tock();}
+}
+
+EOS,
+        ];
+
+        yield 'instance method followed by non-empty constructor' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    private $myProp;
+
+    public function myMethod(): int
+    {
+        return 21;
+    }
+
+    public function __construct(int $myParam)
+    {
+        $this->myProp = $myParam;
+    }
+}
+
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    private $myProp;
+
+    public function myMethod(): int
+    {
+        \My\Stuff\MyTockHandler::tock();return 21;
+    }
+
+    public function __construct(int $myParam)
+    {
+        \My\Stuff\MyTockHandler::tock();$this->myProp = $myParam;
+    }
+}
+
+EOS,
+        ];
+
+        yield 'constructor followed by instance method' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function __construct(int $myParam)
+    {
+    }
+
+    public function myMethod(): int
+    {
+        return 21;
+    }
+}
+
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public function __construct(int $myParam)
+    {
+    \My\Stuff\MyTockHandler::tock();}
+
+    public function myMethod(): int
+    {
+        \My\Stuff\MyTockHandler::tock();return 21;
+    }
+}
+
+EOS,
+        ];
+
+        yield 'mix of static and instance methods' => [
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        return $myNumber * 2;
+    }
+
+    public function tripleIt(int $myNumber): int
+    {
+        return $myNumber * 3;
+    }
+
+    public static function quadrupleIt(int $myNumber): int
+    {
+        return $myNumber * 4;
+    }
+}
+
+MyClass::doubleIt(10);
+MyClass::quadrupleIt(11);
+
+return (new MyClass)->tripleIt(12);
+EOS,
+            <<<'EOS'
+<?php
+class MyClass
+{
+    public static function doubleIt(int $myNumber): int
+    {
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    }
+
+    public function tripleIt(int $myNumber): int
+    {
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 3;
+    }
+
+    public static function quadrupleIt(int $myNumber): int
+    {
+        \My\Stuff\MyTockHandler::tock();return $myNumber * 4;
+    }
+}
+
+MyClass::doubleIt(10);
+MyClass::quadrupleIt(11);
+
+return (new MyClass)->tripleIt(12);
+EOS,
+        ];
+
+
+
+
 
         yield 'abstract static method (no shift applies)' => [
             <<<'EOS'
@@ -435,7 +620,7 @@ EOS,
             <<<'EOS'
 <?php
 do {
-    My\Stuff\MyTockHandler::tock();doFirstThing(
+    \My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -458,7 +643,7 @@ EOS,
             <<<'EOS'
 <?php
 for ($i = 0; $i < 10; $i++) {
-    My\Stuff\MyTockHandler::tock();doFirstThing(
+    \My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -481,7 +666,7 @@ EOS,
             <<<'EOS'
 <?php
 foreach ($myList as $myKey => $myValue) {
-    My\Stuff\MyTockHandler::tock();doFirstThing(
+    \My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -504,7 +689,7 @@ EOS,
             <<<'EOS'
 <?php
 while (    $myCondition    ) {
-    My\Stuff\MyTockHandler::tock();doFirstThing(
+    \My\Stuff\MyTockHandler::tock();doFirstThing(
         $arg1,
         $arg2
     );
@@ -541,10 +726,10 @@ EOS,
 
 function myFunction(): int
 {
-    My\Stuff\MyTockHandler::tock();print 'Before';
+    \My\Stuff\MyTockHandler::tock();print 'Before';
 
     while (    $myCondition    ) {
-        My\Stuff\MyTockHandler::tock();doFirstThing(
+        \My\Stuff\MyTockHandler::tock();doFirstThing(
             $arg1,
             $arg2
         );
@@ -584,7 +769,7 @@ use Asmblah\PhpCodeShift\Attribute\Tockless;
 
 function myTockedFunction(int $myNumber): int
 {
-    My\Stuff\MyTockHandler::tock();return $myNumber * 2;
+    \My\Stuff\MyTockHandler::tock();return $myNumber * 2;
 }
 
 #[Tockless]

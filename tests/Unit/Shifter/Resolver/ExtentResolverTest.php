@@ -22,6 +22,7 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use LogicException;
 use Mockery\MockInterface;
 use PhpParser\Node;
+use stdClass;
 
 /**
  * Class ExtentResolverTest.
@@ -132,18 +133,6 @@ class ExtentResolverTest extends AbstractTestCase
         static::assertSame(7, $extents->getEndLine());
     }
 
-    public function testResolveModificationExtentsReturnsNullForNoneInsertionType(): void
-    {
-        $this->node->allows()
-            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
-            ->andReturn(InsertionType::NONE);
-        $this->nodeResolver->allows()
-            ->extractReplacedNode($this->node)
-            ->andReturnNull();
-
-        static::assertNull($this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext));
-    }
-
     public function testResolveModificationExtentsRaisesExceptionForBeforeNodeInsertionTypeWhenMissingNextSiblingAttribute(): void
     {
         $this->node->allows()
@@ -157,6 +146,120 @@ class ExtentResolverTest extends AbstractTestCase
         $this->expectExceptionMessage('Missing attribute ::NEXT_SIBLING for insertion type ::BEFORE_NODE');
 
         $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+    }
+
+    public function testResolveModificationExtentsReturnsExtentsJustBeforeUnreplacedSiblingForFirstChildInsertionType(): void
+    {
+        $parentNode = mock(Node::class);
+        $nextSibling = mock(Node::class, [
+            'getStartFilePos' => 200,
+            'getStartLine' => 7,
+            'getEndFilePos' => 220,
+            'getEndLine' => 9,
+        ]);
+        $parentNode->stmts = [$nextSibling];
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+
+        // Extents should be at the location just before the sibling.
+        static::assertSame(200, $extents->getStartOffset());
+        static::assertSame(7, $extents->getStartLine());
+        static::assertSame(200, $extents->getEndOffset());
+        static::assertSame(7, $extents->getEndLine());
+    }
+
+    public function testResolveModificationExtentsReturnsExtentsJustBeforeReplacedSiblingForFirstChildInsertionType(): void
+    {
+        $parentNode = mock(Node::class);
+        $nextSibling = mock(Node::class);
+        $replacedNextSibling = mock(Node::class, [
+            'getStartFilePos' => 300,
+            'getStartLine' => 7,
+            'getEndFilePos' => 320,
+            'getEndLine' => 9,
+        ]);
+        $parentNode->stmts = [$replacedNextSibling];
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+        $this->nodeResolver->allows()
+            ->extractReplacedNode($nextSibling)
+            ->andReturn($replacedNextSibling);
+
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+
+        // Extents should be at the location just before the original/replaced sibling.
+        static::assertSame(300, $extents->getStartOffset());
+        static::assertSame(7, $extents->getStartLine());
+        static::assertSame(300, $extents->getEndOffset());
+        static::assertSame(7, $extents->getEndLine());
+    }
+
+    public function testResolveModificationExtentsRaisesExceptionForFirstChildInsertionTypeWhenMissingNextSiblingAttribute(): void
+    {
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturnNull();
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Missing attribute ::PARENT_NODE for insertion type ::FIRST_CHILD');
+
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+    }
+
+    public function testResolveModificationExtentsRaisesExceptionForFirstChildInsertionTypeWhenParentNodeInvalid(): void
+    {
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn(new stdClass()); // Not a valid AST node.
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Parent node is not a valid AST node');
+
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+    }
+
+    public function testResolveModificationExtentsRaisesExceptionForFirstChildInsertionTypeWhenParentNodeDoesNotHaveChildStatementsProperty(): void
+    {
+        $parentNode = mock(Node::class); // No ->stmts property defined.
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Parent node does not have child ->stmts');
+
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+    }
+
+    public function testResolveModificationExtentsReturnsNullForNoneInsertionType(): void
+    {
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::NONE);
+        $this->nodeResolver->allows()
+            ->extractReplacedNode($this->node)
+            ->andReturnNull();
+
+        static::assertNull($this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext));
     }
 
     public function testResolveModificationExtentsRaisesExceptionWhenInvalidInsertionType(): void

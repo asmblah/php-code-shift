@@ -137,13 +137,24 @@ class ExtentResolver implements ExtentResolverInterface
                     $offset = strrpos(
                         $modificationContext->getContents(),
                         '}',
-                        // Use a negative offset so that the reverse search looks left of the computed offset.
-                        $position + $modificationContext->getDelta() - strlen($modificationContext->getContents())
+
+                        /*
+                         * Use a negative offset so that the reverse search looks left of the computed offset.
+                         * As the searched contents are the latest modified contents, delta must be applied
+                         * to the starting offset of the search.
+                         */
+                        -(strlen($modificationContext->getContents()) - $position - $modificationContext->getDelta())
                     );
 
                     if ($offset === false) {
                         throw new LogicException('Cannot find closing brace of parent node');
                     }
+
+                    /*
+                     * Extents must be in terms of the original contents, and so delta is applied later on.
+                     * For this reason, we need to remove the delta from the offset.
+                     */
+                    $offset -= $modificationContext->getDelta();
 
                     $line = $parentNode->getEndLine();
                 }
