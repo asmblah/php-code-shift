@@ -157,7 +157,7 @@ class ExtentResolverTest extends AbstractTestCase
             'getEndFilePos' => 220,
             'getEndLine' => 9,
         ]);
-        $parentNode->stmts = [$nextSibling];
+        $parentNode->stmts = [$this->node, $nextSibling];
         $this->node->allows()
             ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
             ->andReturn(InsertionType::FIRST_CHILD);
@@ -184,7 +184,7 @@ class ExtentResolverTest extends AbstractTestCase
             'getEndFilePos' => 320,
             'getEndLine' => 9,
         ]);
-        $parentNode->stmts = [$replacedNextSibling];
+        $parentNode->stmts = [$this->node, $replacedNextSibling];
         $this->node->allows()
             ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
             ->andReturn(InsertionType::FIRST_CHILD);
@@ -202,6 +202,91 @@ class ExtentResolverTest extends AbstractTestCase
         static::assertSame(7, $extents->getStartLine());
         static::assertSame(300, $extents->getEndOffset());
         static::assertSame(7, $extents->getEndLine());
+    }
+
+    public function testResolveModificationExtentsReturnsExtentsJustInsideEmptyParentForFirstChildInsertionType(): void
+    {
+        $this->modificationContext->allows()
+            ->getContents()
+            ->andReturn('<?php if ($a) { if ($b) { if ($c) {} } }');
+        $this->modificationContext->allows()
+            ->getDelta()
+            ->andReturn(10);
+        $parentNode = mock(Node::class, [
+            'getEndFilePos' => 38 - 10, // Delta of 10 will be applied.
+            'getEndLine' => 8,
+        ]);
+        $parentNode->stmts = [$this->node];
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+
+        $extents = $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+
+        // Extents should be at the location just inside the parent node's brace-delimited block.
+        // Note delta of 10 has been un-applied.
+        static::assertSame(37 - 10, $extents->getStartOffset());
+        static::assertSame(8, $extents->getStartLine());
+        static::assertSame(37 - 10, $extents->getEndOffset());
+        static::assertSame(8, $extents->getEndLine());
+    }
+
+    public function testResolveModificationExtentsRaisesExceptionWhenEmptyParentIsMissingBoundsForFirstChildInsertionType(): void
+    {
+        $parentNode = mock(Node::class, [
+            'getEndFilePos' => -1,
+        ]);
+        $nextSibling = mock(Node::class);
+        $replacedNextSibling = mock(Node::class, [
+            'getStartFilePos' => 300,
+            'getStartLine' => 7,
+            'getEndFilePos' => 320,
+            'getEndLine' => 9,
+        ]);
+        $parentNode->stmts = [$this->node];
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+        $this->nodeResolver->allows()
+            ->extractReplacedNode($nextSibling)
+            ->andReturn($replacedNextSibling);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Parent node is missing end file position');
+
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
+    }
+
+    public function testResolveModificationExtentsRaisesExceptionWhenEmptyParentClosingBraceCannotBeFoundForFirstChildInsertionType(): void
+    {
+        $this->modificationContext->allows()
+            ->getContents()
+            ->andReturn('<?php if ($a) { if ($b) { if ($c) {} } }');
+        $this->modificationContext->allows()
+            ->getDelta()
+            ->andReturn(10);
+        $parentNode = mock(Node::class, [
+            'getEndFilePos' => 12 - 10, // Delta of 10 will be applied.
+            'getEndLine' => 8,
+        ]);
+        $parentNode->stmts = [$this->node];
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::INSERTION_TYPE, InsertionType::NONE)
+            ->andReturn(InsertionType::FIRST_CHILD);
+        $this->node->allows()
+            ->getAttribute(NodeAttribute::PARENT_NODE)
+            ->andReturn($parentNode);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Cannot find closing brace of parent node');
+
+        $this->extentResolver->resolveModificationExtents($this->node, $this->modificationContext);
     }
 
     public function testResolveModificationExtentsRaisesExceptionForFirstChildInsertionTypeWhenMissingNextSiblingAttribute(): void
