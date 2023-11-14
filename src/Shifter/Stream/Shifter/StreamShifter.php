@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Shifter;
 
+use Asmblah\PhpCodeShift\Cache\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 
@@ -29,7 +30,8 @@ class StreamShifter implements StreamShifterInterface
 
     public function __construct(
         private readonly ShiftSetResolverInterface $shiftSetResolver,
-        private readonly ShiftSetShifterInterface $shiftSetShifter
+        private readonly ShiftSetShifterInterface $shiftSetShifter,
+        private readonly CacheAdapterInterface $cacheAdapter
     ) {
     }
 
@@ -59,6 +61,11 @@ class StreamShifter implements StreamShifterInterface
             return $resource;
         }
 
+        if ($this->cacheAdapter->hasFile($path)) {
+            // Early-out: file has already been shifted, open it from the cache.
+            return $this->cacheAdapter->openFile($path);
+        }
+
         $this->shifting = true;
 
         /*
@@ -79,10 +86,9 @@ class StreamShifter implements StreamShifterInterface
             $this->shifting = false;
         }
 
-        $resource = fopen('php://memory', 'wb+');
-        fwrite($resource, $shiftedContents);
-        rewind($resource);
+        // Cache the shifted contents ready for next time.
+        $this->cacheAdapter->saveFile($path, $shiftedContents);
 
-        return $resource;
+        return $this->cacheAdapter->openFile($path);
     }
 }

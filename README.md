@@ -63,8 +63,8 @@ Functionality is extremely limited at the moment, you may well be better off usi
 listed in [See also](#see-also) below.
 
 - Does not yet support `eval(...)`.
-- Does not yet support variable function calls.
-- Does not yet support `call_user_func(...)` and friends,
+- `FunctionHookShiftType` does not yet support variable function calls.
+- `FunctionHookShiftType` does not yet support `call_user_func(...)` and friends,
   nor any other functions accepting callable parameters that may refer to functions.
 
 ## See also
