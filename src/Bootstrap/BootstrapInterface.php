@@ -13,7 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Bootstrap;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterInterface;
+use Asmblah\PhpCodeShift\Cache\CacheInterface;
+use Asmblah\PhpCodeShift\Cache\Provider\CacheProviderInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 
 /**
@@ -26,6 +27,11 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 interface BootstrapInterface
 {
     /**
+     * Fetches the cache.
+     */
+    public function getCache(): CacheInterface;
+
+    /**
      * Fetches the stream shifter.
      */
     public function getStreamShifter(): StreamShifterInterface;
@@ -33,7 +39,7 @@ interface BootstrapInterface
     /**
      * Installs PHP Code Shift.
      */
-    public function install(CacheAdapterInterface $cacheAdapter): void;
+    public function install(CacheProviderInterface $cacheProvider): void;
 
     /**
      * Determines whether PHP Code Shift has been installed or not.

@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
+use Asmblah\PhpCodeShift\Cache\CacheInterface;
+use Asmblah\PhpCodeShift\Cache\Provider\PackageCacheProvider;
 use InvalidArgumentException;
 use Nytris\Core\Package\PackageContextInterface;
 use Nytris\Core\Package\PackageInterface;
@@ -26,6 +28,14 @@ use Nytris\Core\Package\PackageInterface;
  */
 class Shift implements ShiftInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public function getCache(): CacheInterface
+    {
+        return Shared::getBootstrap()->getCache();
+    }
+
     /**
      * @inheritDoc
      */
@@ -57,9 +67,9 @@ class Shift implements ShiftInterface
             );
         }
 
-        $cacheAdapter = $package->getCacheAdapterFactory()->createCacheAdapter($packageContext);
+        $cacheLayerFactory = $package->getCacheLayerFactory();
 
-        Shared::getBootstrap()->install($cacheAdapter);
+        Shared::getBootstrap()->install(new PackageCacheProvider($cacheLayerFactory, $packageContext, $package));
     }
 
     /**

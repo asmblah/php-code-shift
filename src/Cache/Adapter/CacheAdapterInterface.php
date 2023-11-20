@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Cache;
+namespace Asmblah\PhpCodeShift\Cache\Adapter;
 
 use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 

@@ -11,11 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Cache;
+namespace Asmblah\PhpCodeShift\Cache\Adapter;
 
 use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
 use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
+use InvalidArgumentException;
 
 /**
  * Class FilesystemCacheAdapter.
@@ -24,20 +25,40 @@ use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class FilesystemCacheAdapter implements CacheAdapterInterface
+class FilesystemCacheAdapter implements FilesystemCacheAdapterInterface
 {
+    private readonly string $projectRootPath;
+
     public function __construct(
         private readonly FilesystemInterface $filesystem,
-        private readonly string $basePath
+        string $projectRootPath,
+        private readonly string $baseCachePath
     ) {
+        $this->projectRootPath = rtrim($projectRootPath, '/') . '/';
     }
 
     /**
-     * Builds the path to the corresponding file in the cache for the given original file.
+     * @inheritDoc
      */
-    private function buildCachePath(string $originalPath): string
+    public function buildCachePath(string $originalPath): string
     {
-        return $this->basePath . $originalPath;
+        // TODO: Cache length (in this class).
+        $projectRootPathLength = strlen($this->projectRootPath);
+
+        if (!str_starts_with($originalPath, $this->projectRootPath)) {
+            throw new InvalidArgumentException(
+                sprintf(
+                    'Path "%s" must be inside project root "%s" but is not',
+                    $originalPath,
+                    $this->projectRootPath
+                )
+            );
+        }
+
+        // Strip the project path prefix from files in the cache.
+        $projectRelativeFilePath = substr($originalPath, $projectRootPathLength);
+
+        return $this->baseCachePath . DIRECTORY_SEPARATOR . $projectRelativeFilePath;
     }
 
     /**
@@ -65,14 +86,16 @@ class FilesystemCacheAdapter implements CacheAdapterInterface
      */
     public function saveFile(string $path, string $shiftedContents): void
     {
+        $cachePath = $this->buildCachePath($path);
+
         try {
-            $this->filesystem->writeFile($path, $shiftedContents);
+            $this->filesystem->writeFile($cachePath, $shiftedContents);
         } catch (NativeFileOperationFailedException $exception) {
             throw new FileNotCachedException(
                 sprintf(
                     'Failed to write %d byte(s) to cache file path: "%s"',
                     strlen($shiftedContents),
-                    $path
+                    $cachePath
                 ),
                 0,
                 $exception

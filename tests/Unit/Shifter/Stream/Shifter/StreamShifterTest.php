@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Stream\Shifter;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterInterface;
+use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;

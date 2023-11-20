@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterFactoryInterface;
+use Asmblah\PhpCodeShift\Cache\Layer\CacheLayerFactoryInterface;
 use Nytris\Core\Package\PackageInterface;
 
 /**
@@ -26,7 +26,19 @@ use Nytris\Core\Package\PackageInterface;
 interface ShiftPackageInterface extends PackageInterface
 {
     /**
-     * Fetches the cache adapter factory to use.
+     * Fetches the cache layer factory to use.
      */
-    public function getCacheAdapterFactory(): CacheAdapterFactoryInterface;
+    public function getCacheLayerFactory(): CacheLayerFactoryInterface;
+
+    /**
+     * Fetches the source code paths relative to the project root to warm into the cache.
+     *
+     * @return string[]
+     */
+    public function getRelativeSourcePaths(): array;
+
+    /**
+     * Whether to check original files' modification timestamps to detect when cache files are stale.
+     */
+    public function validateTimestamps(): bool;
 }

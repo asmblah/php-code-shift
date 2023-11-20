@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Shifter;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterInterface;
+use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 
@@ -49,6 +49,11 @@ class StreamShifter implements StreamShifterInterface
      */
     public function shift(string $path, $resource)
     {
+        if ($this->cacheAdapter->hasFile($path)) {
+            // Early-out: file has already been shifted, open it from the cache.
+            return $this->cacheAdapter->openFile($path);
+        }
+
         $shiftSet = $this->shiftSetResolver->resolveShiftSet($path);
 
         /*
@@ -59,11 +64,6 @@ class StreamShifter implements StreamShifterInterface
          */
         if ($shiftSet === null || $this->shifting === true) {
             return $resource;
-        }
-
-        if ($this->cacheAdapter->hasFile($path)) {
-            // Early-out: file has already been shifted, open it from the cache.
-            return $this->cacheAdapter->openFile($path);
         }
 
         $this->shifting = true;

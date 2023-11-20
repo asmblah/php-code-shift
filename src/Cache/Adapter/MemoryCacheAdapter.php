@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Cache;
+namespace Asmblah\PhpCodeShift\Cache\Adapter;
 
 use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 
@@ -46,7 +46,16 @@ class MemoryCacheAdapter implements CacheAdapterInterface
             throw new FileNotCachedException('Path not cached: ' . $path);
         }
 
-        return $this->pathToResource[$path];
+        $resource = $this->pathToResource[$path];
+
+        /*
+         * To prevent memory leaks, release the resource from the cache once it has been fetched.
+         * Note that unlike FilesystemCache, this does mean that the file cannot be fetched
+         * from the in-memory cache again, it will need to be re-transpiled.
+         */
+        unset($this->pathToResource[$path]);
+
+        return $resource;
     }
 
     /**

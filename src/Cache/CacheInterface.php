@@ -13,19 +13,26 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Cache;
 
-use Nytris\Core\Package\PackageContextInterface;
+use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 
 /**
- * Interface CacheAdapterFactoryInterface.
+ * Interface CacheInterface.
  *
- * Abstracts the creation of the cache adapter.
+ * Manages the cache.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface CacheAdapterFactoryInterface
+interface CacheInterface
 {
     /**
-     * Creates the cache adapter to use.
+     * Clears the entire cache.
      */
-    public function createCacheAdapter(PackageContextInterface $packageContext): CacheAdapterInterface;
+    public function clear(): void;
+
+    /**
+     * Warms the entire cache.
+     *
+     * @throws FileNotCachedException When there is an issue writing a file to the persistent cache.
+     */
+    public function warmUp(): void;
 }

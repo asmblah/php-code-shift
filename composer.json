@@ -18,7 +18,8 @@
     "require": {
         "php": ">=8.1",
         "nikic/php-parser": "^4.16",
-        "nytris/nytris": "^0.1"
+        "nytris/nytris": "^0.1",
+        "symfony/filesystem": "^5.4"
     },
     "require-dev": {
         "mockery/mockery": "^1.6",

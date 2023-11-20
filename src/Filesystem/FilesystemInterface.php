@@ -30,11 +30,33 @@ interface FilesystemInterface
     public function fileExists(string $path): bool;
 
     /**
+     * Fetches all file paths matching the given pattern.
+     *
+     * @return string[]
+     */
+    public function glob(string $pattern): array;
+
+    /**
+     * Creates the given directory, if it does not already exist.
+     */
+    public function mkdir(string $path): void;
+
+    /**
      * Opens the given file path for reading only.
      *
      * @return resource
      */
     public function openForRead(string $path);
+
+    /**
+     * Reads the entire contents of a file.
+     */
+    public function readFile(string $path): string;
+
+    /**
+     * Removes the given file or directory recursively.
+     */
+    public function remove(string $path): void;
 
     /**
      * Writes the given data to the given file path.

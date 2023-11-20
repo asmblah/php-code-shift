@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterFactoryInterface;
-use Asmblah\PhpCodeShift\Cache\MemoryCacheAdapterFactory;
+use Asmblah\PhpCodeShift\Cache\Layer\CacheLayerFactoryInterface;
+use Asmblah\PhpCodeShift\Cache\Layer\MemoryCacheLayerFactory;
 
 /**
  * Class ShiftPackage.
@@ -25,20 +25,27 @@ use Asmblah\PhpCodeShift\Cache\MemoryCacheAdapterFactory;
  */
 class ShiftPackage implements ShiftPackageInterface
 {
-    private readonly CacheAdapterFactoryInterface $cacheAdapterFactory;
+    private readonly CacheLayerFactoryInterface $cacheLayerFactory;
 
+    /**
+     * @param CacheLayerFactoryInterface|null $cacheLayerFactory
+     * @param bool $validateTimestamps
+     * @param string[] $relativeSourcePaths
+     */
     public function __construct(
-        ?CacheAdapterFactoryInterface $cacheAdapterFactory = null
+        ?CacheLayerFactoryInterface $cacheLayerFactory = null,
+        private readonly bool $validateTimestamps = false,
+        private readonly array $relativeSourcePaths = ['src', 'tests']
     ) {
-        $this->cacheAdapterFactory = $cacheAdapterFactory ?? new MemoryCacheAdapterFactory();
+        $this->cacheLayerFactory = $cacheLayerFactory ?? new MemoryCacheLayerFactory();
     }
 
     /**
      * @inheritDoc
      */
-    public function getCacheAdapterFactory(): CacheAdapterFactoryInterface
+    public function getCacheLayerFactory(): CacheLayerFactoryInterface
     {
-        return $this->cacheAdapterFactory;
+        return $this->cacheLayerFactory;
     }
 
     /**
@@ -47,5 +54,21 @@ class ShiftPackage implements ShiftPackageInterface
     public function getPackageFacadeFqcn(): string
     {
         return Shift::class;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRelativeSourcePaths(): array
+    {
+        return $this->relativeSourcePaths;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateTimestamps(): bool
+    {
+        return $this->validateTimestamps;
     }
 }

@@ -15,7 +15,9 @@ namespace Asmblah\PhpCodeShift;
 
 use Asmblah\PhpCodeShift\Bootstrap\Bootstrap;
 use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
-use Asmblah\PhpCodeShift\Cache\MemoryCacheAdapter;
+use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
+use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
+use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use Asmblah\PhpCodeShift\Util\CallStack;
@@ -68,9 +70,9 @@ class Shared
         if (!self::$bootstrap->isInstalled()) {
             /*
              * Nytris package was not installed - fall back to memory cache.
-             * Note that this will prevent a later install of PHP Code Shift.
+             * Note that this will prevent a later install of PHP Code Shift as a Nytris package.
              */
-            self::$bootstrap->install(new MemoryCacheAdapter());
+            self::$bootstrap->install(new StandaloneCacheProvider(new MemoryCacheAdapter(), new NullCacheDriver()));
         }
 
         return self::$bootstrap->getStreamShifter();

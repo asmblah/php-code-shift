@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Bootstrap;
 
-use Asmblah\PhpCodeShift\Cache\CacheAdapterInterface;
+use Asmblah\PhpCodeShift\Cache\Cache;
+use Asmblah\PhpCodeShift\Cache\CacheInterface;
+use Asmblah\PhpCodeShift\Cache\Provider\CacheProviderInterface;
 use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
 use Asmblah\PhpCodeShift\Shifter\Printer\DelegatingNewNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\ExistingNodePrinter;
@@ -45,8 +47,21 @@ use PhpParser\ParserFactory as LibraryParserFactory;
  */
 class Bootstrap implements BootstrapInterface
 {
+    private ?CacheInterface $cache = null;
     private bool $installed = false;
     private ?StreamShifterInterface $streamShifter = null;
+
+    /**
+     * @inheritDoc
+     */
+    public function getCache(): CacheInterface
+    {
+        if ($this->cache === null) {
+            throw new LogicException('Cannot fetch Cache - not installed');
+        }
+
+        return $this->cache;
+    }
 
     /**
      * @inheritDoc
@@ -63,7 +78,7 @@ class Bootstrap implements BootstrapInterface
     /**
      * @inheritDoc
      */
-    public function install(CacheAdapterInterface $cacheAdapter): void
+    public function install(CacheProviderInterface $cacheProvider): void
     {
         if ($this->installed) {
             throw new LogicException('PHP Code Shift already installed');
@@ -90,15 +105,26 @@ class Bootstrap implements BootstrapInterface
         $nodePrinter->setSingleNodePrinter($singleNodePrinter);
         $nodePrinter->setNodeCollectionPrinter($nodeCollectionPrinter);
 
+        $cacheAdapter = $cacheProvider->createCacheAdapter();
+
+        $shiftSetResolver = new ShiftSetResolver();
+        $shiftSetShifter = new ShiftSetShifter(
+            (new ParserFactory(new LibraryParserFactory()))->createParser(),
+            $extentResolver,
+            $nodePrinter
+        );
         $this->streamShifter = new StreamShifter(
-            new ShiftSetResolver(),
-            new ShiftSetShifter(
-                (new ParserFactory(new LibraryParserFactory()))->createParser(),
-                $extentResolver,
-                $nodePrinter
-            ),
+            $shiftSetResolver,
+            $shiftSetShifter,
             $cacheAdapter
         );
+
+        $cacheDriver = $cacheProvider->createCacheDriver(
+            $cacheAdapter,
+            $shiftSetResolver,
+            $shiftSetShifter
+        );
+        $this->cache = new Cache($cacheDriver);
 
         $this->installed = true;
     }

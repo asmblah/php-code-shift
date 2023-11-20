@@ -13,22 +13,35 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Cache;
 
-use Nytris\Core\Package\PackageContextInterface;
+use Asmblah\PhpCodeShift\Cache\Driver\CacheDriverInterface;
 
 /**
- * Class MemoryCacheAdapterFactory.
+ * Class Cache.
  *
- * Abstracts the creation of the cache adapter.
+ * Manages the cache.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class MemoryCacheAdapterFactory implements CacheAdapterFactoryInterface
+class Cache implements CacheInterface
 {
+    public function __construct(
+        private readonly CacheDriverInterface $cacheDriver
+    ) {
+    }
+
     /**
      * @inheritDoc
      */
-    public function createCacheAdapter(PackageContextInterface $packageContext): CacheAdapterInterface
+    public function clear(): void
     {
-        return new MemoryCacheAdapter();
+        $this->cacheDriver->clear();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function warmUp(): void
+    {
+        $this->cacheDriver->warmUp();
     }
 }

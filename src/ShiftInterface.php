@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
+use Asmblah\PhpCodeShift\Cache\CacheInterface;
 use Nytris\Core\Package\PackageFacadeInterface;
 
 /**
@@ -24,4 +25,8 @@ use Nytris\Core\Package\PackageFacadeInterface;
  */
 interface ShiftInterface extends PackageFacadeInterface
 {
+    /**
+     * Fetches the cache.
+     */
+    public function getCache(): CacheInterface;
 }
