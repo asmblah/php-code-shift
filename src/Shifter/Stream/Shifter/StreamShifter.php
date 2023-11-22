@@ -26,8 +26,6 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
  */
 class StreamShifter implements StreamShifterInterface
 {
-    private bool $shifting = false;
-
     public function __construct(
         private readonly ShiftSetResolverInterface $shiftSetResolver,
         private readonly ShiftSetShifterInterface $shiftSetShifter,
@@ -58,15 +56,10 @@ class StreamShifter implements StreamShifterInterface
 
         /*
          * Early-out if no shifts apply to this path.
-         *
-         * Don't attempt to perform shifts while we're already in the process
-         * of shifting a file, to prevent recursion.
          */
-        if ($shiftSet === null || $this->shifting === true) {
+        if ($shiftSet === null) {
             return $resource;
         }
-
-        $this->shifting = true;
 
         /*
          * File should have one or more shifts applied:
@@ -80,11 +73,7 @@ class StreamShifter implements StreamShifterInterface
          */
         $contents = stream_get_contents($resource);
 
-        try {
-            $shiftedContents = $this->shiftSetShifter->shift($contents, $shiftSet);
-        } finally {
-            $this->shifting = false;
-        }
+        $shiftedContents = $this->shiftSetShifter->shift($contents, $shiftSet);
 
         // Cache the shifted contents ready for next time.
         $this->cacheAdapter->saveFile($path, $shiftedContents);

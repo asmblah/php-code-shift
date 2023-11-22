@@ -86,7 +86,7 @@ class StringLiteralShiftTypeTest extends AbstractTestCase
 
         yield 'matching identifiers are left unchanged' => [
             '<?php const mystring = "hello"; return "it is: " . mystring;',
-            '<?php const mystring = \'hello\'; return \'it is: \' . mystring;',
+            '<?php const mystring = "hello"; return "it is: " . mystring;',
         ];
 
         yield 'multiple literals may be replaced across different lines, preserving line numbers' => [

@@ -38,8 +38,11 @@ class StringLiteralVisitor extends AbstractNodeVisitor
     public function enterNode(Node $node): ?ModificationInterface
     {
         if (
-            $node instanceof Node\Scalar\String_ ||
-            $node instanceof Node\Scalar\EncapsedStringPart
+            (
+                $node instanceof Node\Scalar\String_ ||
+                $node instanceof Node\Scalar\EncapsedStringPart
+            ) &&
+            str_contains($node->value, $this->shiftSpec->getNeedle())
         ) {
             $replacedString = str_replace(
                 $this->shiftSpec->getNeedle(),

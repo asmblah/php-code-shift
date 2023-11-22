@@ -29,6 +29,8 @@ class FunctionHooks
     private static array $hooks = [];
 
     /**
+     * Calls a hooked function.
+     *
      * @param array<mixed> $args
      */
     public static function callFunction(string $functionName, array $args): mixed
@@ -36,6 +38,17 @@ class FunctionHooks
         return self::$hooks[$functionName](...$args);
     }
 
+    /**
+     * Clears all installed function hooks.
+     */
+    public static function clear(): void
+    {
+        self::$hooks = [];
+    }
+
+    /**
+     * Installs a new hook for a function.
+     */
     public static function installHook(string $functionName, callable $implementation): void
     {
         self::$hooks[$functionName] = $implementation;

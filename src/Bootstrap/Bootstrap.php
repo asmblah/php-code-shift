@@ -16,6 +16,7 @@ namespace Asmblah\PhpCodeShift\Bootstrap;
 use Asmblah\PhpCodeShift\Cache\Cache;
 use Asmblah\PhpCodeShift\Cache\CacheInterface;
 use Asmblah\PhpCodeShift\Cache\Provider\CacheProviderInterface;
+use Asmblah\PhpCodeShift\Shifter\Hook\FunctionHooks;
 use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
 use Asmblah\PhpCodeShift\Shifter\Printer\DelegatingNewNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\ExistingNodePrinter;
@@ -31,10 +32,12 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StringLiteralNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\SingleNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolver;
 use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolver;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ReentrantShiftSetShifter;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifter;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolver;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifter;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use LogicException;
 use PhpParser\ParserFactory as LibraryParserFactory;
 
@@ -108,10 +111,12 @@ class Bootstrap implements BootstrapInterface
         $cacheAdapter = $cacheProvider->createCacheAdapter();
 
         $shiftSetResolver = new ShiftSetResolver();
-        $shiftSetShifter = new ShiftSetShifter(
-            (new ParserFactory(new LibraryParserFactory()))->createParser(),
-            $extentResolver,
-            $nodePrinter
+        $shiftSetShifter = new ReentrantShiftSetShifter(
+            new ShiftSetShifter(
+                (new ParserFactory(new LibraryParserFactory()))->createParser(),
+                $extentResolver,
+                $nodePrinter
+            )
         );
         $this->streamShifter = new StreamShifter(
             $shiftSetResolver,
@@ -127,6 +132,8 @@ class Bootstrap implements BootstrapInterface
         $this->cache = new Cache($cacheDriver);
 
         $this->installed = true;
+
+        StreamWrapperManager::initialise();
     }
 
     /**
@@ -142,6 +149,17 @@ class Bootstrap implements BootstrapInterface
      */
     public function uninstall(): void
     {
+        $this->cache = null;
+        $this->streamShifter = null;
+
+        FunctionHooks::clear();
+        StreamWrapperManager::uninitialise();
+
+        // Re-initialise in non-Nytris-package mode. Note that this will mark bootstrap as installed,
+        // so we must revert that just below.
+        $this->installed = false;
+        StreamWrapperManager::initialise();
+
         $this->installed = false;
     }
 }

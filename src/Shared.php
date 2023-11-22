@@ -43,7 +43,7 @@ class Shared
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
 
-        StreamWrapperManager::init();
+        StreamWrapperManager::initialise();
     }
 
     /**

@@ -14,11 +14,15 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Cache\Driver;
 
 use Asmblah\PhpCodeShift\Cache\Adapter\FilesystemCacheAdapterInterface;
+use Asmblah\PhpCodeShift\Exception\DirectoryNotFoundException;
 use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
-use DirectoryIterator;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 
 /**
  * Class FilesystemCacheDriver.
@@ -63,34 +67,30 @@ class FilesystemCacheDriver implements CacheDriverInterface
         $this->filesystem->mkdir($this->baseCachePath);
 
         foreach ($this->relativeSourcePaths as $relativeSourcePath) {
-            $directoryIterator = new DirectoryIterator(
-                $this->projectRootPath . DIRECTORY_SEPARATOR . $relativeSourcePath
+            $directoryPath = $this->projectRootPath . DIRECTORY_SEPARATOR . $relativeSourcePath;
+
+            if (!is_dir($directoryPath)) {
+                throw new DirectoryNotFoundException(
+                    sprintf(
+                        'Cannot warm relative source path "%s": path "%s" does not exist',
+                        $relativeSourcePath,
+                        $directoryPath
+                    )
+                );
+            }
+
+            $directoryIterator = new RecursiveDirectoryIterator(
+                $directoryPath,
+                FilesystemIterator::SKIP_DOTS | FilesystemIterator::CURRENT_AS_PATHNAME
+            );
+            $regexIterator = new RegexIterator(
+                new RecursiveIteratorIterator($directoryIterator),
+                '/^.+\.php$/i',
+                RegexIterator::GET_MATCH
             );
 
-            $this->warmDirectory($directoryIterator);
-        }
-    }
-
-    /**
-     * Traverses the given directory, warming any applicable PHP files into the cache.
-     *
-     * @throws FileNotCachedException
-     */
-    private function warmDirectory(DirectoryIterator $directoryIterator): void
-    {
-        /** @var DirectoryIterator $fileInfo */
-        foreach ($directoryIterator as $fileInfo) {
-            if ($fileInfo->isDot()) {
-                continue;
-            }
-
-            if ($fileInfo->isDir()) {
-                $this->warmDirectory($fileInfo);
-                continue;
-            }
-
-            if ($fileInfo->isFile() && strtolower($fileInfo->getExtension()) === 'php') {
-                $this->warmFile($fileInfo->getPathname());
+            foreach ($regexIterator as $regexMatches) {
+                $this->warmFile($regexMatches[0]);
             }
         }
     }
