@@ -13,29 +13,15 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
-use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
-use Asmblah\PhpCodeShift\Shifter\Printer\DelegatingNewNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\ExistingNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NewNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeCollectionPrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\EncapsedStringPartNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ExpressionStatementNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\IdentifierNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NameNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StringLiteralNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Printer\SingleNodePrinter;
-use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolver;
-use Asmblah\PhpCodeShift\Shifter\Resolver\NodeResolver;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifter;
-use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolver;
-use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifter;
+use Asmblah\PhpCodeShift\Bootstrap\Bootstrap;
+use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
+use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
+use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
+use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use Asmblah\PhpCodeShift\Util\CallStack;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
-use PhpParser\ParserFactory as LibraryParserFactory;
 
 /**
  * Class Shared.
@@ -46,44 +32,26 @@ use PhpParser\ParserFactory as LibraryParserFactory;
  */
 class Shared
 {
+    private static ?BootstrapInterface $bootstrap;
     private static ?CallStackInterface $callStack;
-    private static ?StreamShifterInterface $streamShifter;
 
+    /**
+     * Initialises PHP Code Shift early on, so that it may be used as early as possible.
+     */
     public static function init(): void
     {
+        self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
 
-        $nodeResolver = new NodeResolver();
-        $nodePrinter = new NodePrinter();
-        $existingNodePrinter = new ExistingNodePrinter();
+        StreamWrapperManager::initialise();
+    }
 
-        $delegatingNewNodePrinter = new DelegatingNewNodePrinter();
-        $delegatingNewNodePrinter->registerNodePrinter(new EncapsedStringPartNodePrinter());
-        $delegatingNewNodePrinter->registerNodePrinter(new ExpressionStatementNodePrinter($nodePrinter));
-        $delegatingNewNodePrinter->registerNodePrinter(new IdentifierNodePrinter());
-        $delegatingNewNodePrinter->registerNodePrinter(new NameNodePrinter());
-        $delegatingNewNodePrinter->registerNodePrinter(new StaticCallNodePrinter($nodePrinter));
-        $delegatingNewNodePrinter->registerNodePrinter(new StringLiteralNodePrinter());
-
-        $extentResolver = new ExtentResolver($nodeResolver);
-
-        $newNodePrinter = new NewNodePrinter($extentResolver, $delegatingNewNodePrinter);
-        $singleNodePrinter = new SingleNodePrinter($existingNodePrinter, $newNodePrinter);
-        $nodeCollectionPrinter = new NodeCollectionPrinter($singleNodePrinter);
-
-        $nodePrinter->setSingleNodePrinter($singleNodePrinter);
-        $nodePrinter->setNodeCollectionPrinter($nodeCollectionPrinter);
-
-        self::$streamShifter = new StreamShifter(
-            new ShiftSetResolver(),
-            new ShiftSetShifter(
-                (new ParserFactory(new LibraryParserFactory()))->createParser(),
-                $extentResolver,
-                $nodePrinter
-            )
-        );
-
-        StreamWrapperManager::init();
+    /**
+     * Fetches the Bootstrap service.
+     */
+    public static function getBootstrap(): BootstrapInterface
+    {
+        return self::$bootstrap;
     }
 
     /**
@@ -99,7 +67,23 @@ class Shared
      */
     public static function getStreamShifter(): StreamShifterInterface
     {
-        return self::$streamShifter;
+        if (!self::$bootstrap->isInstalled()) {
+            /*
+             * Nytris package was not installed - fall back to memory cache.
+             * Note that this will prevent a later install of PHP Code Shift as a Nytris package.
+             */
+            self::$bootstrap->install(new StandaloneCacheProvider(new MemoryCacheAdapter(), new NullCacheDriver()));
+        }
+
+        return self::$bootstrap->getStreamShifter();
+    }
+
+    /**
+     * Installs a new Bootstrap.
+     */
+    public static function setBootstrap(BootstrapInterface $bootstrap): void
+    {
+        self::$bootstrap = $bootstrap;
     }
 
     /**
@@ -108,13 +92,5 @@ class Shared
     public static function setCallStack(CallStackInterface $callStack): void
     {
         self::$callStack = $callStack;
-    }
-
-    /**
-     * Installs a new StreamShifter.
-     */
-    public static function setStreamShifter(StreamShifterInterface $streamShifter): void
-    {
-        self::$streamShifter = $streamShifter;
     }
 }

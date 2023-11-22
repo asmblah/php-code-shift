@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Stream\Shifter;
 
+use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifter;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use Mockery;
 use Mockery\MockInterface;
 
 /**
@@ -27,6 +29,7 @@ use Mockery\MockInterface;
  */
 class StreamShifterTest extends AbstractTestCase
 {
+    private MockInterface&CacheAdapterInterface $cacheAdapter;
     private MockInterface&ShiftSetInterface $resolvedShiftSet;
     /**
      * @var resource|null
@@ -38,6 +41,9 @@ class StreamShifterTest extends AbstractTestCase
 
     public function setUp(): void
     {
+        $this->cacheAdapter = mock(CacheAdapterInterface::class, [
+            'hasFile' => false,
+        ]);
         $this->resolvedShiftSet = mock(ShiftSetInterface::class);
         $this->resource = fopen('php://memory', 'wb+');
         $this->shiftSetResolver = mock(ShiftSetResolverInterface::class, [
@@ -45,7 +51,29 @@ class StreamShifterTest extends AbstractTestCase
         ]);
         $this->shiftSetShifter = mock(ShiftSetShifterInterface::class);
 
-        $this->streamShifter = new StreamShifter($this->shiftSetResolver, $this->shiftSetShifter);
+        $this->cacheAdapter->allows()
+            ->saveFile(Mockery::andAnyOtherArgs())
+            ->andReturnUsing(function (string $path, string $shiftedContents) {
+                $resource = fopen('php://memory', 'wb+');
+                fwrite($resource, $shiftedContents);
+                rewind($resource);
+
+                $this->cacheAdapter->allows()
+                    ->hasFile($path)
+                    ->andReturnTrue()
+                    ->byDefault();
+                $this->cacheAdapter->allows()
+                    ->openFile($path)
+                    ->andReturn($resource)
+                    ->byDefault();
+            })
+            ->byDefault();
+
+        $this->streamShifter = new StreamShifter(
+            $this->shiftSetResolver,
+            $this->shiftSetShifter,
+            $this->cacheAdapter
+        );
     }
 
     public function testShiftReturnsResourceUnchangedWhenNoShiftsAreResolvedAsApplicable(): void
@@ -60,38 +88,37 @@ class StreamShifterTest extends AbstractTestCase
         );
     }
 
-    public function testShiftReturnsResourceUnchangedWhenAShiftIsAlreadyInProgress(): void
+    public function testShiftReturnsPreviouslyCachedFileResource(): void
     {
-        $firstResource = fopen('php://memory', 'wb+');
-        fwrite($firstResource, '<?php "my original first contents";');
-        rewind($firstResource);
-        $firstShiftSet = mock(ShiftSetInterface::class);
-        $this->shiftSetResolver->allows()
-            ->resolveShiftSet('/my/first_module.php')
-            ->andReturn($firstShiftSet);
-        $secondResource = fopen('php://memory', 'wb+');
-        fwrite($secondResource, '<?php "my original second contents";');
-        rewind($secondResource);
-        $secondShiftSet = mock(ShiftSetInterface::class);
-        $this->shiftSetResolver->allows()
-            ->resolveShiftSet('/my/second_module.php')
-            ->andReturn($secondShiftSet);
-        $secondShiftResult = null;
-        $this->shiftSetShifter->allows()
-            ->shift('<?php "my original first contents";', $firstShiftSet)
-            ->andReturnUsing(function () use ($secondResource, &$secondShiftResult) {
-                $secondShiftResult = $this->streamShifter->shift('/my/second_module.php', $secondResource);
+        $cacheFileResource = fopen('php://memory', 'wb+');
+        $this->cacheAdapter->allows()
+            ->hasFile('/my/path/to/my_module.php')
+            ->andReturnTrue();
+        $this->cacheAdapter->allows()
+            ->openFile('/my/path/to/my_module.php')
+            ->andReturn($cacheFileResource);
 
-                return '<?php "my new first contents";';
-            });
-        $this->shiftSetShifter->allows()
-            ->shift('<?php "my original second contents";', $secondShiftSet)
-            // Should not be used.
-            ->andReturn('<?php "my new second contents";');
+        static::assertSame(
+            $cacheFileResource,
+            $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource)
+        );
+    }
 
-        $this->streamShifter->shift('/my/first_module.php', $firstResource);
+    public function testShiftDoesNotReshiftPreviouslyCachedFile(): void
+    {
+        $cacheFileResource = fopen('php://memory', 'wb+');
+        $this->cacheAdapter->allows()
+            ->hasFile('/my/path/to/my_module.php')
+            ->andReturnTrue();
+        $this->cacheAdapter->allows()
+            ->openFile('/my/path/to/my_module.php')
+            ->andReturn($cacheFileResource);
 
-        static::assertSame($secondResource, $secondShiftResult);
+        $this->shiftSetShifter->expects()
+            ->shift(Mockery::andAnyOtherArgs())
+            ->never();
+
+        $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource);
     }
 
     public function testShiftShiftsViaShiftSetShifter(): void
@@ -127,7 +154,6 @@ class StreamShifterTest extends AbstractTestCase
         $this->shiftSetResolver->allows()
             ->resolveShiftSet('/my/second_module.php')
             ->andReturn($secondShiftSet);
-        $secondShiftResult = null;
         $this->shiftSetShifter->allows()
             ->shift('<?php "my original first contents";', $firstShiftSet)
             ->andReturn('<?php "my new first contents";');

@@ -35,10 +35,10 @@ class StreamWrapperManager
     /**
      * @var SplObjectStorage<ShiftCollectionInterface, mixed>
      */
-    private static SplObjectStorage $shiftCollections;
-    private static StreamHandlerInterface $streamHandler;
+    private static ?SplObjectStorage $shiftCollections;
+    private static ?StreamHandlerInterface $streamHandler;
 
-    public static function init(): void
+    public static function initialise(): void
     {
         /** @var SplObjectStorage<ShiftCollectionInterface, mixed> $shiftCollections */
         $shiftCollections = new SplObjectStorage();
@@ -87,6 +87,17 @@ class StreamWrapperManager
     public static function setStreamHandler(StreamHandlerInterface $streamHandler): void
     {
         self::$streamHandler = $streamHandler;
+    }
+
+    /**
+     * Uninitialises the stream wrapper mechanism as part of uninstalling the PHP Code Shift Nytris package.
+     */
+    public static function uninitialise(): void
+    {
+        self::$shiftCollections = null;
+        self::$streamHandler = null;
+
+        StreamWrapper::unregister();
     }
 
     public static function uninstallShiftCollection(ShiftCollectionInterface $shiftCollection): void

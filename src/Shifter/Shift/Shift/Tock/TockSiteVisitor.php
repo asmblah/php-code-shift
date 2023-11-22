@@ -16,11 +16,9 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shift\Tock;
 use Asmblah\PhpCodeShift\Attribute\Tockless;
 use Asmblah\PhpCodeShift\Shifter\Ast\NodeAttribute;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\InsertAsFirstChildModification;
-use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\InsertBeforeModification;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Ast\ModificationInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\AbstractNodeVisitor;
 use PhpParser\Node;
-use RuntimeException;
 
 /**
  * Class TockSiteVisitor.

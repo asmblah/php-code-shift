@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Shifter;
 
+use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 
@@ -25,11 +26,10 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
  */
 class StreamShifter implements StreamShifterInterface
 {
-    private bool $shifting = false;
-
     public function __construct(
         private readonly ShiftSetResolverInterface $shiftSetResolver,
-        private readonly ShiftSetShifterInterface $shiftSetShifter
+        private readonly ShiftSetShifterInterface $shiftSetShifter,
+        private readonly CacheAdapterInterface $cacheAdapter
     ) {
     }
 
@@ -47,19 +47,19 @@ class StreamShifter implements StreamShifterInterface
      */
     public function shift(string $path, $resource)
     {
+        if ($this->cacheAdapter->hasFile($path)) {
+            // Early-out: file has already been shifted, open it from the cache.
+            return $this->cacheAdapter->openFile($path);
+        }
+
         $shiftSet = $this->shiftSetResolver->resolveShiftSet($path);
 
         /*
          * Early-out if no shifts apply to this path.
-         *
-         * Don't attempt to perform shifts while we're already in the process
-         * of shifting a file, to prevent recursion.
          */
-        if ($shiftSet === null || $this->shifting === true) {
+        if ($shiftSet === null) {
             return $resource;
         }
-
-        $this->shifting = true;
 
         /*
          * File should have one or more shifts applied:
@@ -73,16 +73,11 @@ class StreamShifter implements StreamShifterInterface
          */
         $contents = stream_get_contents($resource);
 
-        try {
-            $shiftedContents = $this->shiftSetShifter->shift($contents, $shiftSet);
-        } finally {
-            $this->shifting = false;
-        }
+        $shiftedContents = $this->shiftSetShifter->shift($contents, $shiftSet);
 
-        $resource = fopen('php://memory', 'wb+');
-        fwrite($resource, $shiftedContents);
-        rewind($resource);
+        // Cache the shifted contents ready for next time.
+        $this->cacheAdapter->saveFile($path, $shiftedContents);
 
-        return $resource;
+        return $this->cacheAdapter->openFile($path);
     }
 }
