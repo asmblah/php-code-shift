@@ -16,7 +16,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Shifter;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 
 /**
- * Interface ReentrantShiftSetShifter.
+ * Class ReentrantShiftSetShifter.
  *
  * Applies a set of shifts represented by a ShiftSet to a code string,
  * preventing any shifting of autoloaded classes from occurring during the process
