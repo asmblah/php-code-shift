@@ -12,5 +12,7 @@
 declare(strict_types=1);
 
 use Asmblah\PhpCodeShift\Shared;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 
-Shared::init();
+Shared::initialise();
+StreamWrapperManager::initialise();

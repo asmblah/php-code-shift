@@ -32,14 +32,28 @@ use SplObjectStorage;
  */
 class StreamWrapperManager
 {
+    private static bool $initialised = false;
     /**
      * @var SplObjectStorage<ShiftCollectionInterface, mixed>
      */
     private static ?SplObjectStorage $shiftCollections;
     private static ?StreamHandlerInterface $streamHandler;
 
+    /**
+     * Initialises the stream wrapper mechanism.
+     *
+     * Called from either:
+     * - Bootstrap ::install(...) or ::uninstall(...)
+     * - The Composer package bootstrap module src/bootstrap.php.
+     */
     public static function initialise(): void
     {
+        if (self::$initialised) {
+            return;
+        }
+
+        self::$initialised = true;
+
         /** @var SplObjectStorage<ShiftCollectionInterface, mixed> $shiftCollections */
         $shiftCollections = new SplObjectStorage();
 
@@ -98,6 +112,8 @@ class StreamWrapperManager
         self::$streamHandler = null;
 
         StreamWrapper::unregister();
+
+        self::$initialised = false;
     }
 
     public static function uninstallShiftCollection(ShiftCollectionInterface $shiftCollection): void

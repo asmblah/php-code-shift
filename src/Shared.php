@@ -19,7 +19,6 @@ use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
 use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
 use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
-use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use Asmblah\PhpCodeShift\Util\CallStack;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 
@@ -34,16 +33,21 @@ class Shared
 {
     private static ?BootstrapInterface $bootstrap;
     private static ?CallStackInterface $callStack;
+    private static bool $initialised = false;
 
     /**
      * Initialises PHP Code Shift early on, so that it may be used as early as possible.
      */
-    public static function init(): void
+    public static function initialise(): void
     {
+        if (self::$initialised) {
+            return;
+        }
+
+        self::$initialised = true;
+
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
-
-        StreamWrapperManager::initialise();
     }
 
     /**
@@ -92,5 +96,15 @@ class Shared
     public static function setCallStack(CallStackInterface $callStack): void
     {
         self::$callStack = $callStack;
+    }
+
+    /**
+     * Uninitialises PHP Code Shift. Only really useful for testing.
+     */
+    public static function uninitialise(): void
+    {
+        self::$bootstrap = null;
+        self::$callStack = null;
+        self::$initialised = false;
     }
 }

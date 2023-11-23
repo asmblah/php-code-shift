@@ -69,6 +69,8 @@ class Shift implements ShiftInterface
 
         $cacheLayerFactory = $package->getCacheLayerFactory();
 
+        Shared::initialise();
+
         Shared::getBootstrap()->install(new PackageCacheProvider($cacheLayerFactory, $packageContext, $package));
     }
 
