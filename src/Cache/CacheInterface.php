@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Cache;
 
-use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
+use Asmblah\PhpCodeShift\Exception\DirectoryNotFoundException;
 
 /**
  * Interface CacheInterface.
@@ -32,7 +32,7 @@ interface CacheInterface
     /**
      * Warms the entire cache.
      *
-     * @throws FileNotCachedException When there is an issue writing a file to the persistent cache.
+     * @throws DirectoryNotFoundException When a given directory cannot be found during cache warmup.
      */
     public function warmUp(): void;
 }

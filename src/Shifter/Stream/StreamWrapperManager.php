@@ -96,6 +96,14 @@ class StreamWrapperManager
     }
 
     /**
+     * Determines whether the stream wrapper mechanism has been initialised.
+     */
+    public static function isInitialised(): bool
+    {
+        return self::$initialised;
+    }
+
+    /**
      * Installs a new StreamHandler to be used for new streams created after this point.
      */
     public static function setStreamHandler(StreamHandlerInterface $streamHandler): void

@@ -25,6 +25,8 @@ use Nytris\Core\Package\PackageInterface;
  */
 interface ShiftPackageInterface extends PackageInterface
 {
+    public const DEFAULT_SOURCE_PATTERN = '/^.+\.php$/i';
+
     /**
      * Fetches the cache layer factory to use.
      */
@@ -36,6 +38,11 @@ interface ShiftPackageInterface extends PackageInterface
      * @return string[]
      */
     public function getRelativeSourcePaths(): array;
+
+    /**
+     * Fetches the regex pattern to filter source files to be compiled by.
+     */
+    public function getSourcePattern(): string;
 
     /**
      * Whether to check original files' modification timestamps to detect when cache files are stale.

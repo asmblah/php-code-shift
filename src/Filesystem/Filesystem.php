@@ -14,6 +14,10 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Filesystem;
 
 use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
@@ -34,6 +38,14 @@ class Filesystem implements FilesystemInterface
     /**
      * @inheritDoc
      */
+    public function directoryExists(string $path): bool
+    {
+        return is_dir($path);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function fileExists(string $path): bool
     {
         return is_file($path);
@@ -45,6 +57,23 @@ class Filesystem implements FilesystemInterface
     public function glob(string $pattern): array
     {
         return glob($pattern, GLOB_BRACE);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function iterateDirectory(string $path, string $pattern): RegexIterator
+    {
+        $directoryIterator = new RecursiveDirectoryIterator(
+            $path,
+            FilesystemIterator::SKIP_DOTS | FilesystemIterator::CURRENT_AS_PATHNAME
+        );
+
+        return new RegexIterator(
+            new RecursiveIteratorIterator($directoryIterator),
+            $pattern,
+            RegexIterator::GET_MATCH
+        );
     }
 
     /**

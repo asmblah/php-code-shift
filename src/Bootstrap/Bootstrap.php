@@ -16,6 +16,7 @@ namespace Asmblah\PhpCodeShift\Bootstrap;
 use Asmblah\PhpCodeShift\Cache\Cache;
 use Asmblah\PhpCodeShift\Cache\CacheInterface;
 use Asmblah\PhpCodeShift\Cache\Provider\CacheProviderInterface;
+use Asmblah\PhpCodeShift\Shared;
 use Asmblah\PhpCodeShift\Shifter\Hook\FunctionHooks;
 use Asmblah\PhpCodeShift\Shifter\Parser\ParserFactory;
 use Asmblah\PhpCodeShift\Shifter\Printer\DelegatingNewNodePrinter;
@@ -127,7 +128,8 @@ class Bootstrap implements BootstrapInterface
         $cacheDriver = $cacheProvider->createCacheDriver(
             $cacheAdapter,
             $shiftSetResolver,
-            $shiftSetShifter
+            $shiftSetShifter,
+            Shared::getLogger()
         );
         $this->cache = new Cache($cacheDriver);
 

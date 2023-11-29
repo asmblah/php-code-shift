@@ -21,6 +21,8 @@ use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Util\CallStack;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Class Shared.
@@ -34,6 +36,7 @@ class Shared
     private static ?BootstrapInterface $bootstrap;
     private static ?CallStackInterface $callStack;
     private static bool $initialised = false;
+    private static ?LoggerInterface $logger;
 
     /**
      * Initialises PHP Code Shift early on, so that it may be used as early as possible.
@@ -48,6 +51,7 @@ class Shared
 
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
+        self::$logger = new NullLogger();
     }
 
     /**
@@ -64,6 +68,14 @@ class Shared
     public static function getCallStack(): CallStackInterface
     {
         return self::$callStack;
+    }
+
+    /**
+     * Fetches the Logger service.
+     */
+    public static function getLogger(): LoggerInterface
+    {
+        return self::$logger;
     }
 
     /**
@@ -96,6 +108,14 @@ class Shared
     public static function setCallStack(CallStackInterface $callStack): void
     {
         self::$callStack = $callStack;
+    }
+
+    /**
+     * Installs a new Logger.
+     */
+    public static function setLogger(LoggerInterface $logger): void
+    {
+        self::$logger = $logger;
     }
 
     /**

@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shifter;
 
+use Asmblah\PhpCodeShift\Exception\ParseFailedException;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Resolver\ExtentResolverInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Context\ShiftContext;
@@ -21,6 +22,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\ModificationVisitor;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverser;
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Code\CodeModificationTraverser;
+use PhpParser\Error;
 use PhpParser\NodeTraverser;
 use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
@@ -49,7 +51,15 @@ class ShiftSetShifter implements ShiftSetShifterInterface
         ShiftSetInterface $shiftSet
     ): string {
         $shiftContext = new ShiftContext($shiftSet, $contents);
-        $nodes = $this->parser->parse($contents);
+
+        try {
+            $nodes = $this->parser->parse($contents);
+        } catch (Error $exception) {
+            throw new ParseFailedException(
+                $shiftSet->getPath(),
+                $exception
+            );
+        }
 
         // Resolve names (e.g. class identifiers -> FQCNs).
         $nameResolvingTraverser = new NodeTraverser();

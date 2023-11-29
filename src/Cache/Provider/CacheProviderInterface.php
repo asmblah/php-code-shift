@@ -17,6 +17,7 @@ use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Cache\Driver\CacheDriverInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interface CacheProviderInterface.
@@ -39,6 +40,7 @@ interface CacheProviderInterface
     public function createCacheDriver(
         CacheAdapterInterface $cacheAdapter,
         ShiftSetResolverInterface $shiftSetResolver,
-        ShiftSetShifterInterface $shiftSetShifter
+        ShiftSetShifterInterface $shiftSetShifter,
+        LoggerInterface $logger
     ): CacheDriverInterface;
 }

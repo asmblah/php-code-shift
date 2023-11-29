@@ -15,6 +15,7 @@ namespace Asmblah\PhpCodeShift;
 
 use Asmblah\PhpCodeShift\Cache\CacheInterface;
 use Nytris\Core\Package\PackageFacadeInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interface ShiftInterface.
@@ -29,4 +30,14 @@ interface ShiftInterface extends PackageFacadeInterface
      * Fetches the cache.
      */
     public function getCache(): CacheInterface;
+
+    /**
+     * Fetches the configured logger. Will be a NullLogger if none.
+     */
+    public function getLogger(): LoggerInterface;
+
+    /**
+     * Sets a new logger to use.
+     */
+    public function setLogger(LoggerInterface $logger): void;
 }

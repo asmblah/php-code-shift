@@ -51,6 +51,26 @@ class StreamWrapperManagerTest extends AbstractTestCase
         static::assertSame($streamHandler, StreamWrapperManager::getStreamHandler());
     }
 
+    public function testIsInitialisedReturnsTrueWhenInitialised(): void
+    {
+        StreamWrapperManager::initialise();
+
+        static::assertTrue(StreamWrapperManager::isInitialised());
+    }
+
+    public function testIsInitialisedReturnsFalseWhenNotYetInitialised(): void
+    {
+        static::assertFalse(StreamWrapperManager::isInitialised());
+    }
+
+    public function testIsInitialisedReturnsFalseWhenInitialisedThenUninitialised(): void
+    {
+        StreamWrapperManager::initialise();
+        StreamWrapperManager::uninitialise();
+
+        static::assertFalse(StreamWrapperManager::isInitialised());
+    }
+
     public function testSetStreamHandlerOverridesHandler(): void
     {
         $streamHandler = mock(StreamHandlerInterface::class);

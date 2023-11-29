@@ -31,7 +31,7 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $this->varPath = __DIR__ . '/../../var';
+        $this->varPath = dirname(__DIR__, 2) . '/var';
         @mkdir($this->varPath, recursive: true);
 
         $this->codeShift = new CodeShift();

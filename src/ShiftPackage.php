@@ -29,13 +29,15 @@ class ShiftPackage implements ShiftPackageInterface
 
     /**
      * @param CacheLayerFactoryInterface|null $cacheLayerFactory
-     * @param bool $validateTimestamps
      * @param string[] $relativeSourcePaths
+     * @param string $sourcePattern
+     * @param bool $validateTimestamps
      */
     public function __construct(
         ?CacheLayerFactoryInterface $cacheLayerFactory = null,
         private readonly bool $validateTimestamps = false,
-        private readonly array $relativeSourcePaths = ['src', 'tests']
+        private readonly array $relativeSourcePaths = ['src', 'tests'],
+        private readonly string $sourcePattern = self::DEFAULT_SOURCE_PATTERN
     ) {
         $this->cacheLayerFactory = $cacheLayerFactory ?? new MemoryCacheLayerFactory();
     }
@@ -62,6 +64,14 @@ class ShiftPackage implements ShiftPackageInterface
     public function getRelativeSourcePaths(): array
     {
         return $this->relativeSourcePaths;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getSourcePattern(): string
+    {
+        return $this->sourcePattern;
     }
 
     /**

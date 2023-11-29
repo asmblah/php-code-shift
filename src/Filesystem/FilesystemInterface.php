@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Filesystem;
 
 use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
+use RegexIterator;
 
 /**
  * Interface FilesystemInterface.
@@ -25,6 +26,11 @@ use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
 interface FilesystemInterface
 {
     /**
+     * Determines whether a directory exists at the given path.
+     */
+    public function directoryExists(string $path): bool;
+
+    /**
      * Determines whether a file exists at the given path.
      */
     public function fileExists(string $path): bool;
@@ -35,6 +41,11 @@ interface FilesystemInterface
      * @return string[]
      */
     public function glob(string $pattern): array;
+
+    /**
+     * Returns an iterator over files in the given directory.
+     */
+    public function iterateDirectory(string $path, string $pattern): RegexIterator;
 
     /**
      * Creates the given directory, if it does not already exist.

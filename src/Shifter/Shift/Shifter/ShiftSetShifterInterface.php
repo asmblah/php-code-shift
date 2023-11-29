@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Shift\Shifter;
 
+use Asmblah\PhpCodeShift\Exception\ParseFailedException;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 
 /**
@@ -26,6 +27,8 @@ interface ShiftSetShifterInterface
 {
     /**
      * Performs all shifts in the set against the given contents, returning the shifted result.
+     *
+     * @throws ParseFailedException
      */
     public function shift(string $contents, ShiftSetInterface $shiftSet): string;
 }

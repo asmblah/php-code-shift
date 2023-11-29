@@ -20,6 +20,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 use Asmblah\PhpCodeShift\ShiftPackageInterface;
 use Nytris\Core\Package\PackageContextInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class PackageCacheProvider.
@@ -51,12 +52,14 @@ class PackageCacheProvider implements CacheProviderInterface
     public function createCacheDriver(
         CacheAdapterInterface $cacheAdapter,
         ShiftSetResolverInterface $shiftSetResolver,
-        ShiftSetShifterInterface $shiftSetShifter
+        ShiftSetShifterInterface $shiftSetShifter,
+        LoggerInterface $logger
     ): CacheDriverInterface {
         return $this->cacheLayerFactory->createCacheDriver(
             $cacheAdapter,
             $shiftSetResolver,
             $shiftSetShifter,
+            $logger,
             $this->packageContext,
             $this->package
         );

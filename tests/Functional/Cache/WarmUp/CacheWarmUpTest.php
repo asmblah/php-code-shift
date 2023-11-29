@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Tests\Functional\Cache;
+namespace Asmblah\PhpCodeShift\Tests\Functional\Cache\WarmUp;
 
 use Asmblah\PhpCodeShift\Cache\Layer\FilesystemCacheLayerFactory;
 use Asmblah\PhpCodeShift\CodeShift;
@@ -23,10 +23,11 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 use Nytris\Core\Package\PackageContextInterface;
 use Symfony\Component\Filesystem\Filesystem;
-use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 /**
  * Class CacheWarmUpTest.
+ *
+ * Tests warming the cache with syntactically correct code.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
@@ -36,23 +37,24 @@ class CacheWarmUpTest extends AbstractTestCase
     private MockInterface&PackageContextInterface $packageContext;
     private Shift $shift;
     private ShiftPackageInterface $shiftPackage;
-    private SymfonyFilesystem $symfonyFilesystem;
+    private Filesystem $symfonyFilesystem;
 
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->packageCachePath = dirname(__DIR__, 3) . '/var/cache/project/nytris/shift';
+        $this->packageCachePath = dirname(__DIR__, 4) . '/var/cache/warmup/project/nytris/shift';
         $this->packageContext = mock(PackageContextInterface::class, [
             'getPackageCachePath' => $this->packageCachePath,
-            'resolveProjectRoot' => dirname(__DIR__, 3),
+            'resolveProjectRoot' => dirname(__DIR__, 4),
         ]);
         $this->shift = new Shift();
         $this->shiftPackage = mock(ShiftPackageInterface::class, [
             'getCacheLayerFactory' => new FilesystemCacheLayerFactory(),
             'getRelativeSourcePaths' => [
-                'tests/Functional/Fixtures/cache/project/src',
+                'tests/Functional/Fixtures/cache/warmup/project/src',
             ],
+            'getSourcePattern' => ShiftPackageInterface::DEFAULT_SOURCE_PATTERN,
         ]);
         $this->symfonyFilesystem = new Filesystem();
 
@@ -81,13 +83,13 @@ class CacheWarmUpTest extends AbstractTestCase
 
     public function testCacheWarmUpWarmsCacheCorrectly(): void
     {
-        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/project/src/My/Stuff/MyStuff.php';
+        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
         $expectedContents = <<<PHP
 <?php
 
 declare(strict_types=1);
 
-namespace Asmblah\PhpCodeShift\Tests\Functional\Fixtures\cache\project\src\My\Stuff;
+namespace Asmblah\PhpCodeShift\Tests\Functional\Fixtures\cache\warmup\project\src\My\Stuff;
 
 class MyStuff
 {

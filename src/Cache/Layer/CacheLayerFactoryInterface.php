@@ -19,6 +19,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 use Asmblah\PhpCodeShift\ShiftPackageInterface;
 use Nytris\Core\Package\PackageContextInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Interface CacheLayerFactoryInterface.
@@ -41,6 +42,7 @@ interface CacheLayerFactoryInterface
         CacheAdapterInterface $cacheAdapter,
         ShiftSetResolverInterface $shiftSetResolver,
         ShiftSetShifterInterface $shiftSetShifter,
+        LoggerInterface $logger,
         PackageContextInterface $packageContext,
         ShiftPackageInterface $package
     ): CacheDriverInterface;

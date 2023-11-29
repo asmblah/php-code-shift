@@ -18,6 +18,7 @@ use Asmblah\PhpCodeShift\Cache\Provider\PackageCacheProvider;
 use InvalidArgumentException;
 use Nytris\Core\Package\PackageContextInterface;
 use Nytris\Core\Package\PackageInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class Shift.
@@ -34,6 +35,14 @@ class Shift implements ShiftInterface
     public function getCache(): CacheInterface
     {
         return Shared::getBootstrap()->getCache();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getLogger(): LoggerInterface
+    {
+        return Shared::getLogger();
     }
 
     /**
@@ -80,6 +89,14 @@ class Shift implements ShiftInterface
     public static function isInstalled(): bool
     {
         return Shared::getBootstrap()->isInstalled();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function setLogger(LoggerInterface $logger): void
+    {
+        Shared::setLogger($logger);
     }
 
     /**

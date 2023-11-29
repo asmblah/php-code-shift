@@ -13,16 +13,10 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Cache\Driver;
 
-use Asmblah\PhpCodeShift\Cache\Adapter\FilesystemCacheAdapterInterface;
+use Asmblah\PhpCodeShift\Cache\Warmer\WarmerInterface;
 use Asmblah\PhpCodeShift\Exception\DirectoryNotFoundException;
-use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
-use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
-use FilesystemIterator;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class FilesystemCacheDriver.
@@ -33,22 +27,27 @@ use RegexIterator;
  */
 class FilesystemCacheDriver implements CacheDriverInterface
 {
+    private readonly string $projectRootPath;
+
     /**
-     * @param FilesystemCacheAdapterInterface $cacheAdapter
      * @param FilesystemInterface $filesystem
+     * @param WarmerInterface $warmer
+     * @param LoggerInterface $logger
      * @param string $projectRootPath
      * @param string[] $relativeSourcePaths
+     * @param string $sourcePattern
      * @param string $baseCachePath
      */
     public function __construct(
-        private readonly FilesystemCacheAdapterInterface $cacheAdapter,
         private readonly FilesystemInterface $filesystem,
-        private readonly ShiftSetResolverInterface $shiftSetResolver,
-        private readonly ShiftSetShifterInterface $shiftSetShifter,
-        private readonly string $projectRootPath,
+        private readonly WarmerInterface $warmer,
+        private readonly LoggerInterface $logger,
+        string $projectRootPath,
         private readonly array $relativeSourcePaths,
+        private readonly string $sourcePattern,
         private readonly string $baseCachePath
     ) {
+        $this->projectRootPath = rtrim($projectRootPath, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
     /**
@@ -56,7 +55,11 @@ class FilesystemCacheDriver implements CacheDriverInterface
      */
     public function clear(): void
     {
+        $this->logger->info('Clearing Nytris Shift cache...');
+
         $this->filesystem->remove($this->baseCachePath);
+
+        $this->logger->info('Nytris Shift cache cleared');
     }
 
     /**
@@ -64,12 +67,18 @@ class FilesystemCacheDriver implements CacheDriverInterface
      */
     public function warmUp(): void
     {
+        $this->logger->info('Warming Nytris Shift cache...');
+
         $this->filesystem->mkdir($this->baseCachePath);
 
         foreach ($this->relativeSourcePaths as $relativeSourcePath) {
-            $directoryPath = $this->projectRootPath . DIRECTORY_SEPARATOR . $relativeSourcePath;
+            $this->logger->debug('Entering directory for Nytris Shift cache warm...', [
+                'directory' => $relativeSourcePath,
+            ]);
 
-            if (!is_dir($directoryPath)) {
+            $directoryPath = $this->projectRootPath . $relativeSourcePath;
+
+            if (!$this->filesystem->directoryExists($directoryPath)) {
                 throw new DirectoryNotFoundException(
                     sprintf(
                         'Cannot warm relative source path "%s": path "%s" does not exist',
@@ -79,39 +88,13 @@ class FilesystemCacheDriver implements CacheDriverInterface
                 );
             }
 
-            $directoryIterator = new RecursiveDirectoryIterator(
-                $directoryPath,
-                FilesystemIterator::SKIP_DOTS | FilesystemIterator::CURRENT_AS_PATHNAME
-            );
-            $regexIterator = new RegexIterator(
-                new RecursiveIteratorIterator($directoryIterator),
-                '/^.+\.php$/i',
-                RegexIterator::GET_MATCH
-            );
+            $regexIterator = $this->filesystem->iterateDirectory($directoryPath, $this->sourcePattern);
 
             foreach ($regexIterator as $regexMatches) {
-                $this->warmFile($regexMatches[0]);
+                $this->warmer->warmFile($regexMatches[0]);
             }
         }
-    }
 
-    /**
-     * Warms the given file, pre-shifting it into the cache.
-     *
-     * @throws FileNotCachedException
-     */
-    private function warmFile(string $filePath): void
-    {
-        $shiftSet = $this->shiftSetResolver->resolveShiftSet($filePath);
-
-        if ($shiftSet === null) {
-            // No shifts apply to this file - nothing to do.
-            return;
-        }
-
-        $originalContents = $this->filesystem->readFile($filePath);
-        $shiftedContents = $this->shiftSetShifter->shift($originalContents, $shiftSet);
-
-        $this->cacheAdapter->saveFile($filePath, $shiftedContents);
+        $this->logger->info('Nytris Shift cache warmed');
     }
 }

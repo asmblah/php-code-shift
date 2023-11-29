@@ -17,6 +17,8 @@ use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
 use Asmblah\PhpCodeShift\Shared;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * Class SharedTest.
@@ -51,6 +53,13 @@ class SharedTest extends AbstractTestCase
         static::assertInstanceOf(CallStackInterface::class, Shared::getCallStack());
     }
 
+    public function testInitialiseProvidesNullLogger(): void
+    {
+        Shared::initialise();
+
+        static::assertInstanceOf(NullLogger::class, Shared::getLogger());
+    }
+
     public function testInitialiseDoesNotReinitialise(): void
     {
         Shared::initialise();
@@ -77,5 +86,14 @@ class SharedTest extends AbstractTestCase
         Shared::setCallStack($callStack);
 
         static::assertSame($callStack, Shared::getCallStack());
+    }
+
+    public function testSetLoggerOverridesLogger(): void
+    {
+        $logger = mock(LoggerInterface::class);
+
+        Shared::setLogger($logger);
+
+        static::assertSame($logger, Shared::getLogger());
     }
 }

@@ -21,11 +21,13 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Shifter\ShiftSetShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Resolver\ShiftSetResolverInterface;
 use Asmblah\PhpCodeShift\ShiftPackageInterface;
 use Nytris\Core\Package\PackageContextInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class MemoryCacheLayerFactory.
  *
  * Abstracts the creation of the cache layer adapter and driver.
+ * Used when there is no need to cache shifted code on disk to speed up future execution.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
@@ -46,6 +48,7 @@ class MemoryCacheLayerFactory implements CacheLayerFactoryInterface
         CacheAdapterInterface $cacheAdapter,
         ShiftSetResolverInterface $shiftSetResolver,
         ShiftSetShifterInterface $shiftSetShifter,
+        LoggerInterface $logger,
         PackageContextInterface $packageContext,
         ShiftPackageInterface $package
     ): CacheDriverInterface {
