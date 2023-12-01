@@ -42,7 +42,6 @@ class FilesystemCacheDriverTest extends AbstractTestCase
             'mkdir' => null,
         ]);
         $this->logger = mock(LoggerInterface::class, [
-            'debug' => null,
             'info' => null,
         ]);
         $this->warmer = mock(WarmerInterface::class, [
@@ -141,7 +140,7 @@ class FilesystemCacheDriverTest extends AbstractTestCase
             ->once()
             ->globally()->ordered();
         $this->logger->expects()
-            ->debug('Entering directory for Nytris Shift cache warm...', [
+            ->info('Entering directory for Nytris Shift cache warm...', [
                 'directory' => 'src',
             ])
             ->once()
@@ -155,7 +154,7 @@ class FilesystemCacheDriverTest extends AbstractTestCase
             ->once()
             ->globally()->ordered();
         $this->logger->expects()
-            ->debug('Entering directory for Nytris Shift cache warm...', [
+            ->info('Entering directory for Nytris Shift cache warm...', [
                 'directory' => 'stuff',
             ])
             ->once()

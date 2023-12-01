@@ -72,7 +72,7 @@ class FilesystemCacheDriver implements CacheDriverInterface
         $this->filesystem->mkdir($this->baseCachePath);
 
         foreach ($this->relativeSourcePaths as $relativeSourcePath) {
-            $this->logger->debug('Entering directory for Nytris Shift cache warm...', [
+            $this->logger->info('Entering directory for Nytris Shift cache warm...', [
                 'directory' => $relativeSourcePath,
             ]);
 

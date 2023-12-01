@@ -51,7 +51,7 @@ class FilesystemCacheWarmerTest extends AbstractTestCase
             'mkdir' => null,
         ]);
         $this->logger = mock(LoggerInterface::class, [
-            'debug' => null,
+            'info' => null,
         ]);
         $this->shiftSet = mock(ShiftSetInterface::class);
         $this->shiftSetResolver = mock(ShiftSetResolverInterface::class);
@@ -85,7 +85,7 @@ class FilesystemCacheWarmerTest extends AbstractTestCase
             ->saveFile('/path/to/project/src/My/Stuff/MyStuff.php', '<?php return "my shifted code is this.";')
             ->once();
         $this->logger->expects()
-            ->debug('Nytris Shift successfully warmed cache file', [
+            ->info('Nytris Shift successfully warmed cache file', [
                 'path' => '/path/to/project/src/My/Stuff/MyStuff.php',
             ])
             ->once();
@@ -103,7 +103,7 @@ class FilesystemCacheWarmerTest extends AbstractTestCase
             ->never();
         $this->cacheAdapter->expects('saveFile')
             ->never();
-        $this->logger->expects('debug')
+        $this->logger->expects('info')
             ->never();
 
         $this->warmer->warmFile('/path/to/project/src/My/Stuff/MyStuff.php');
@@ -131,7 +131,7 @@ class FilesystemCacheWarmerTest extends AbstractTestCase
             ->once();
         $this->cacheAdapter->expects('saveFile')
             ->never();
-        $this->logger->expects('debug')
+        $this->logger->expects('info')
             ->never();
 
         $this->warmer->warmFile('/path/to/project/src/My/Stuff/MyStuff.php');
@@ -151,7 +151,7 @@ class FilesystemCacheWarmerTest extends AbstractTestCase
                 ],
             ])
             ->once();
-        $this->logger->expects('debug')
+        $this->logger->expects('info')
             ->never();
 
         $this->warmer->warmFile('/path/to/project/src/My/Stuff/MyStuff.php');

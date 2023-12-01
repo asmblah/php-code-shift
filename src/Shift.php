@@ -42,7 +42,7 @@ class Shift implements ShiftInterface
      */
     public function getLogger(): LoggerInterface
     {
-        return Shared::getLogger();
+        return Shared::getLogger()->getInnerLogger();
     }
 
     /**

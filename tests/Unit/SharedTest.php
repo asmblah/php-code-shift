@@ -57,7 +57,7 @@ class SharedTest extends AbstractTestCase
     {
         Shared::initialise();
 
-        static::assertInstanceOf(NullLogger::class, Shared::getLogger());
+        static::assertInstanceOf(NullLogger::class, Shared::getLogger()->getInnerLogger());
     }
 
     public function testInitialiseDoesNotReinitialise(): void
@@ -94,6 +94,6 @@ class SharedTest extends AbstractTestCase
 
         Shared::setLogger($logger);
 
-        static::assertSame($logger, Shared::getLogger());
+        static::assertSame($logger, Shared::getLogger()->getInnerLogger());
     }
 }

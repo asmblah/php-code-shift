@@ -82,7 +82,7 @@ class FilesystemCacheWarmer implements WarmerInterface
             return;
         }
 
-        $this->logger->debug('Nytris Shift successfully warmed cache file', [
+        $this->logger->info('Nytris Shift successfully warmed cache file', [
             'path' => $filePath,
         ]);
     }

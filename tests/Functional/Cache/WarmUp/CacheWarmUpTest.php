@@ -20,6 +20,7 @@ use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\ShiftPackageInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use Asmblah\PhpCodeShift\Tests\Functional\Util\TestLogger;
 use Mockery\MockInterface;
 use Nytris\Core\Package\PackageContextInterface;
 use Symfony\Component\Filesystem\Filesystem;
@@ -33,8 +34,10 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class CacheWarmUpTest extends AbstractTestCase
 {
+    private TestLogger $logger;
     private string $packageCachePath;
     private MockInterface&PackageContextInterface $packageContext;
+    private string $projectRoot;
     private Shift $shift;
     private ShiftPackageInterface $shiftPackage;
     private Filesystem $symfonyFilesystem;
@@ -43,20 +46,27 @@ class CacheWarmUpTest extends AbstractTestCase
     {
         parent::setUp();
 
-        $this->packageCachePath = dirname(__DIR__, 4) . '/var/cache/warmup/project/nytris/shift';
+        $projectRoot = dirname(__DIR__, 4);
+        $relativeProjectRoot = 'tests/Functional/Fixtures/cache/warmup/project/src';
+
+        $this->logger = new TestLogger();
+        $this->projectRoot = $projectRoot . '/' . $relativeProjectRoot;
+        $this->packageCachePath = $projectRoot . '/var/cache/warmup/project/nytris/shift';
         $this->packageContext = mock(PackageContextInterface::class, [
             'getPackageCachePath' => $this->packageCachePath,
-            'resolveProjectRoot' => dirname(__DIR__, 4),
+            'resolveProjectRoot' => $projectRoot,
         ]);
         $this->shift = new Shift();
         $this->shiftPackage = mock(ShiftPackageInterface::class, [
             'getCacheLayerFactory' => new FilesystemCacheLayerFactory(),
             'getRelativeSourcePaths' => [
-                'tests/Functional/Fixtures/cache/warmup/project/src',
+                $relativeProjectRoot,
             ],
             'getSourcePattern' => ShiftPackageInterface::DEFAULT_SOURCE_PATTERN,
         ]);
         $this->symfonyFilesystem = new Filesystem();
+
+        $this->shift->setLogger($this->logger);
 
         Shift::uninstall();
         Shift::install($this->packageContext, $this->shiftPackage);
@@ -103,6 +113,92 @@ PHP;
 
         $this->shift->getCache()->warmUp();
 
+        static::assertEquals(
+            [
+                [
+                    'info',
+                    'Warming Nytris Shift cache...',
+                    [],
+                ],
+                [
+                    'info',
+                    'Entering directory for Nytris Shift cache warm...',
+                    [
+                        'directory' => 'tests/Functional/Fixtures/cache/warmup/project/src',
+                    ],
+                ],
+                [
+                    'info',
+                    'Nytris Shift successfully warmed cache file',
+                    [
+                        'path' => $this->projectRoot . '/My/Stuff/MyStuff.php',
+                    ],
+                ],
+                [
+                    'info',
+                    'Nytris Shift cache warmed',
+                    [],
+                ],
+            ],
+            $this->logger->getLogs()
+        );
+        static::assertTrue(is_file($cacheFilePath));
+        static::assertSame($expectedContents, file_get_contents($cacheFilePath));
+    }
+
+    public function testCacheWarmUpAllowsLoggerToBeSetLater(): void
+    {
+        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
+        $expectedContents = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+namespace Asmblah\PhpCodeShift\Tests\Functional\Fixtures\cache\warmup\project\src\My\Stuff;
+
+class MyStuff
+{
+    public function getGreeting(): string
+    {
+        return 'Goodbye!';
+    }
+}
+
+PHP;
+        $laterLogger = new TestLogger();
+        $this->shift->setLogger($laterLogger);
+
+        $this->shift->getCache()->warmUp();
+
+        static::assertEquals(
+            [
+                [
+                    'info',
+                    'Warming Nytris Shift cache...',
+                    [],
+                ],
+                [
+                    'info',
+                    'Entering directory for Nytris Shift cache warm...',
+                    [
+                        'directory' => 'tests/Functional/Fixtures/cache/warmup/project/src',
+                    ],
+                ],
+                [
+                    'info',
+                    'Nytris Shift successfully warmed cache file',
+                    [
+                        'path' => $this->projectRoot . '/My/Stuff/MyStuff.php',
+                    ],
+                ],
+                [
+                    'info',
+                    'Nytris Shift cache warmed',
+                    [],
+                ],
+            ],
+            $laterLogger->getLogs()
+        );
         static::assertTrue(is_file($cacheFilePath));
         static::assertSame($expectedContents, file_get_contents($cacheFilePath));
     }

@@ -111,14 +111,14 @@ class SyntaxErrorTest extends AbstractTestCase
                     [],
                 ],
                 [
-                    'debug',
+                    'info',
                     'Entering directory for Nytris Shift cache warm...',
                     [
                         'directory' => 'tests/Functional/Fixtures/cache/syntaxError/project/src',
                     ],
                 ],
                 [
-                    'debug',
+                    'info',
                     'Nytris Shift successfully warmed cache file',
                     [
                         'path' => $this->projectRoot . '/Your/Gubbins/YourGubbins.php',

@@ -18,11 +18,12 @@ use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
 use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
 use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
 use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
+use Asmblah\PhpCodeShift\Logger\DelegatingLogger;
+use Asmblah\PhpCodeShift\Logger\DelegatingLoggerInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Util\CallStack;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * Class Shared.
@@ -36,7 +37,7 @@ class Shared
     private static ?BootstrapInterface $bootstrap;
     private static ?CallStackInterface $callStack;
     private static bool $initialised = false;
-    private static ?LoggerInterface $logger;
+    private static ?DelegatingLoggerInterface $logger;
 
     /**
      * Initialises PHP Code Shift early on, so that it may be used as early as possible.
@@ -51,7 +52,7 @@ class Shared
 
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
-        self::$logger = new NullLogger();
+        self::$logger = new DelegatingLogger();
     }
 
     /**
@@ -71,9 +72,9 @@ class Shared
     }
 
     /**
-     * Fetches the Logger service.
+     * Fetches the delegating Logger service.
      */
-    public static function getLogger(): LoggerInterface
+    public static function getLogger(): DelegatingLoggerInterface
     {
         return self::$logger;
     }
@@ -115,7 +116,7 @@ class Shared
      */
     public static function setLogger(LoggerInterface $logger): void
     {
-        self::$logger = $logger;
+        self::$logger->setInnerLogger($logger);
     }
 
     /**
