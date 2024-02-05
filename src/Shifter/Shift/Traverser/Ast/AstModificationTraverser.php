@@ -15,6 +15,8 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\NodeVisitorInterface;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor;
+use PhpParser\NodeVisitor\NameResolver;
 
 /**
  * Class AstModificationTraverser.
@@ -26,16 +28,24 @@ use PhpParser\NodeTraverser;
 class AstModificationTraverser implements AstModificationTraverserInterface
 {
     /**
-     * @var NodeVisitorInterface[]
+     * @var NodeVisitor[]
      */
     private array $nodeVisitors = [];
 
     /**
      * @inheritDoc
      */
+    public function addLibraryVisitor(NodeVisitor $nodeVisitor): void
+    {
+        $this->nodeVisitors[] =  $nodeVisitor;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function addVisitor(NodeVisitorInterface $nodeVisitor): void
     {
-        $this->nodeVisitors[] = $nodeVisitor;
+        $this->nodeVisitors[] = new LibraryVisitor($nodeVisitor);
     }
 
     /**
@@ -46,8 +56,11 @@ class AstModificationTraverser implements AstModificationTraverserInterface
         // NodeTraversers cannot be reused due to their internal state.
         $nodeTraverser = new NodeTraverser();
 
+        // Resolve names (e.g. class identifiers -> FQCNs).
+        $nodeTraverser->addVisitor(new NameResolver());
+
         foreach ($this->nodeVisitors as $nodeVisitor) {
-            $nodeTraverser->addVisitor(new LibraryVisitor($nodeVisitor));
+            $nodeTraverser->addVisitor($nodeVisitor);
         }
 
         return $nodeTraverser->traverse($nodes);

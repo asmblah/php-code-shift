@@ -26,6 +26,7 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NodeCollectionPrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\EncapsedStringPartNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ExpressionStatementNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\FullyQualifiedNameNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\IdentifierNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NameNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
@@ -95,6 +96,7 @@ class Bootstrap implements BootstrapInterface
         $delegatingNewNodePrinter = new DelegatingNewNodePrinter();
         $delegatingNewNodePrinter->registerNodePrinter(new EncapsedStringPartNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new ExpressionStatementNodePrinter($nodePrinter));
+        $delegatingNewNodePrinter->registerNodePrinter(new FullyQualifiedNameNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new IdentifierNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new NameNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new StaticCallNodePrinter($nodePrinter));

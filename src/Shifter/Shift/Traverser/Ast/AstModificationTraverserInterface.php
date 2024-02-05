@@ -15,6 +15,7 @@ namespace Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast;
 
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Visitor\NodeVisitorInterface;
 use PhpParser\Node;
+use PhpParser\NodeVisitor;
 
 /**
  * Interface AstModificationTraverserInterface.
@@ -26,7 +27,12 @@ use PhpParser\Node;
 interface AstModificationTraverserInterface
 {
     /**
-     * Adds a visitor for AST nodes.
+     * Adds a visitor for AST nodes using the PHP Parser interface.
+     */
+    public function addLibraryVisitor(NodeVisitor $nodeVisitor): void;
+
+    /**
+     * Adds a visitor for AST nodes using PHP Code Shift's interface.
      */
     public function addVisitor(NodeVisitorInterface $nodeVisitor): void;
 

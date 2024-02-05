@@ -52,4 +52,14 @@ class FileFilter implements FileFilterInterface
 
         return false;
     }
+
+    /**
+     * Fetches the patterns defined for this filter.
+     *
+     * @return string[]
+     */
+    public function getPatterns(): array
+    {
+        return $this->patterns;
+    }
 }

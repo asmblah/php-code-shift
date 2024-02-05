@@ -20,7 +20,7 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Asmblah\PhpCodeShift\Tests\Functional\Harness\Shift\Tock\TockHandler;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
-use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Expression;
 
 /**
@@ -40,7 +40,7 @@ class TockStatementShiftTypeTest extends AbstractTestCase
             new TockStatementShiftSpec(
                 fn () => new Expression(
                     new StaticCall(
-                        new Name('\\' . TockHandler::class),
+                        new FullyQualified(TockHandler::class),
                         new Identifier('tock')
                     )
                 )

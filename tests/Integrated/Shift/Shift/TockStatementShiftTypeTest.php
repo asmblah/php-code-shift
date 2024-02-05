@@ -25,7 +25,7 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Generator;
 use Mockery\MockInterface;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Name;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Expression;
 
 /**
@@ -57,7 +57,7 @@ class TockStatementShiftTypeTest extends AbstractTestCase
                 new Shift\Tock\TockStatementShiftSpec(function () {
                     return new Expression(
                         new StaticCall(
-                            new Name('\My\Stuff\MyTockHandler'),
+                            new FullyQualified('My\Stuff\MyTockHandler'),
                             'tock'
                         )
                     );

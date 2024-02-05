@@ -16,6 +16,7 @@ namespace Asmblah\PhpCodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ShiftTypeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
+use OutOfBoundsException;
 
 /**
  * Interface CodeShiftInterface.
@@ -30,6 +31,20 @@ interface CodeShiftInterface
      * Adds a filter for paths that should never be transpiled.
      */
     public function deny(FileFilterInterface $filter): void;
+
+    /**
+     * Excludes a Composer package from being transpiled.
+     *
+     * @throws OutOfBoundsException When the package is not installed.
+     */
+    public function excludeComposerPackage(string $packageName): void;
+
+    /**
+     * Excludes a Composer package from being transpiled.
+     *
+     * Does nothing if the package is not installed.
+     */
+    public function excludeComposerPackageIfInstalled(string $packageName): void;
 
     /**
      * Installs all behaviour registered by this CodeShift instance.

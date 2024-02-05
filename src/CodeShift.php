@@ -28,6 +28,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
 use Asmblah\PhpCodeShift\Shifter\ShifterInterface;
+use Composer\InstalledVersions;
 
 /**
  * Class CodeShift.
@@ -49,9 +50,6 @@ class CodeShift implements CodeShiftInterface
     ) {
         if ($denyList === null) {
             $denyList = new DenyList();
-
-            // Never transpile the source of PHP Code Shift itself.
-            $denyList->addFilter(new FileFilter(dirname(__DIR__) . '/src/**'));
         }
 
         if ($delegatingShift === null) {
@@ -65,6 +63,12 @@ class CodeShift implements CodeShiftInterface
         $this->delegatingShift = $delegatingShift;
         $this->denyList = $denyList;
         $this->shifter = $shifter ?? new Shifter(new ShiftCollection());
+
+        // Never transpile the source of PHP Code Shift itself.
+        $denyList->addFilter(new FileFilter(dirname(__DIR__) . '/src/**'));
+
+        // Never transpile core dependencies.
+        $this->excludeComposerPackage('nikic/php-parser');
     }
 
     /**
@@ -73,6 +77,26 @@ class CodeShift implements CodeShiftInterface
     public function deny(FileFilterInterface $filter): void
     {
         $this->denyList->addFilter($filter);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function excludeComposerPackage(string $packageName): void
+    {
+        $packageInstallPath = realpath(InstalledVersions::getInstallPath($packageName));
+
+        $this->deny(new FileFilter($packageInstallPath . '/**'));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function excludeComposerPackageIfInstalled(string $packageName): void
+    {
+        if (InstalledVersions::isInstalled($packageName)) {
+            $this->excludeComposerPackage($packageName);
+        }
     }
 
     /**

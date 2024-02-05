@@ -21,10 +21,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationCon
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\ModificationVisitor;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Ast\AstModificationTraverser;
-use Asmblah\PhpCodeShift\Shifter\Shift\Traverser\Code\CodeModificationTraverser;
 use PhpParser\Error;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\Parser;
 
 /**
@@ -61,39 +58,30 @@ class ShiftSetShifter implements ShiftSetShifterInterface
             );
         }
 
-        // Resolve names (e.g. class identifiers -> FQCNs).
-        $nameResolvingTraverser = new NodeTraverser();
-        $nameResolvingTraverser->addVisitor(new NameResolver());
-        $nameResolvingTraverser->traverse($nodes);
+        $modificationTraverser = new AstModificationTraverser();
 
         // Set up AST modifications.
-        $astModificationTraverser = new AstModificationTraverser();
-
         foreach ($shiftSet->getShifts() as $shift) {
-            $shift->configureTraversal($astModificationTraverser, $shiftContext);
+            $shift->configureTraversal($modificationTraverser, $shiftContext);
         }
-
-        // Perform AST modifications.
-        do {
-            $previousNodes = $nodes;
-            $nodes = $astModificationTraverser->traverse($nodes);
-        } while ($nodes !== $previousNodes);
 
         $context = new ModificationContext($shiftContext);
 
-        // Now perform code modifications according to the AST modifications made above.
-
-        // Process all nodes that have changed in the AST,
-        // generating each changed node's replacement code and replacing it in the code string.
-        $codeModificationTraverser = new CodeModificationTraverser();
-        $codeModificationTraverser->addVisitor(
+        $modificationTraverser->addLibraryVisitor(
             new ModificationVisitor(
                 $context,
                 $this->extentResolver,
                 $this->nodePrinter
             )
         );
-        $codeModificationTraverser->traverse($nodes);
+
+        /*
+         * - Perform AST modifications
+         * - Perform code modifications according to the AST modifications made.
+         * - Process all nodes that have changed in the AST,
+         *   generating each changed node's replacement code and replacing it in the code string.
+         */
+        $modificationTraverser->traverse($nodes);
 
         // Return the final modified contents.
         return $context->getContents();

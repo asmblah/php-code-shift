@@ -59,4 +59,18 @@ class FileFilterTest extends AbstractTestCase
     {
         static::assertFalse($this->filter->fileMatches('phar://' . __DIR__));
     }
+
+    public function testGetPatternsFetchesAllPatterns(): void
+    {
+        $filter = new FileFilter('my/pattern');
+
+        static::assertEquals(
+            [
+                'file://my/pattern',
+                'phar://my/pattern',
+                'my/pattern',
+            ],
+            $filter->getPatterns()
+        );
+    }
 }

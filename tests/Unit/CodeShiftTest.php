@@ -15,6 +15,7 @@ namespace Asmblah\PhpCodeShift\Tests\Unit;
 
 use Asmblah\PhpCodeShift\CodeShift;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
+use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
@@ -24,6 +25,7 @@ use Asmblah\PhpCodeShift\Shifter\ShifterInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery;
 use Mockery\MockInterface;
+use OutOfBoundsException;
 
 /**
  * Class CodeShiftTest.
@@ -41,6 +43,7 @@ class CodeShiftTest extends AbstractTestCase
     {
         $this->delegatingShift = mock(DelegatingShiftInterface::class);
         $this->denyList = mock(DenyListInterface::class, [
+            'addFilter' => null,
             'clear' => null,
             'fileMatches' => false,
         ]);
@@ -58,6 +61,36 @@ class CodeShiftTest extends AbstractTestCase
         );
     }
 
+    public function testConstructorExcludesPhpCodeShiftItself(): void
+    {
+        $this->denyList->expects()
+            ->addFilter(Mockery::on(fn (FileFilterInterface $filter) =>
+                $filter->fileMatches(dirname(__DIR__, 2) . '/src/Shared.php')
+            ))
+            ->once();
+
+        new CodeShift(
+            $this->denyList,
+            $this->delegatingShift,
+            $this->shifter
+        );
+    }
+
+    public function testConstructorExcludesCoreDependencies(): void
+    {
+        $this->denyList->expects()
+            ->addFilter(Mockery::on(fn (FileFilterInterface $filter) =>
+                $filter->fileMatches(dirname(__DIR__, 2) . '/vendor/nikic/php-parser/lib/PhpParser/Lexer.php')
+            ))
+            ->once();
+
+        new CodeShift(
+            $this->denyList,
+            $this->delegatingShift,
+            $this->shifter
+        );
+    }
+
     public function testDenyAddsTheFilterToTheDenyList(): void
     {
         $filter = mock(FileFilterInterface::class);
@@ -67,6 +100,70 @@ class CodeShiftTest extends AbstractTestCase
             ->once();
 
         $this->codeShift->deny($filter);
+    }
+
+    public function testExcludeComposerPackageAddsTheFilterToTheDenyListWhenInstalled(): void
+    {
+        $filter = mock(FileFilterInterface::class);
+
+        $this->denyList->expects('addFilter')
+            ->andReturnUsing(function (FileFilter $filter) {
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[0]
+                );
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[1]
+                );
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[2]
+                );
+            })
+            ->once();
+
+        $this->codeShift->excludeComposerPackage('mockery/mockery');
+    }
+
+    public function testExcludeComposerPackageRaisesExceptionWhenPackageNotInstalled(): void
+    {
+        $this->expectException(OutOfBoundsException::class);
+        $this->expectExceptionMessage('Package "not-installed/not-installed" is not installed');
+
+        $this->codeShift->excludeComposerPackage('not-installed/not-installed');
+    }
+
+    public function testExcludeComposerPackageIfInstalledAddsTheFilterToTheDenyListWhenInstalled(): void
+    {
+        $filter = mock(FileFilterInterface::class);
+
+        $this->denyList->expects('addFilter')
+            ->andReturnUsing(function (FileFilter $filter) {
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[0]
+                );
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[1]
+                );
+                static::assertMatchesRegularExpression(
+                    '#/vendor/mockery/mockery/\*\*$#',
+                    $filter->getPatterns()[2]
+                );
+            })
+            ->once();
+
+        $this->codeShift->excludeComposerPackageIfInstalled('mockery/mockery');
+    }
+
+    public function testExcludeComposerPackageIfInstalledDoesNotAddAnyFilterToTheDenyListWhenPackageNotInstalled(): void
+    {
+        $this->denyList->expects('addFilter')
+            ->never();
+
+        $this->codeShift->excludeComposerPackageIfInstalled('not-installed/not-installed');
     }
 
     public function testRegisterShiftTypeRegistersTheTypeWithTheDelegator(): void
