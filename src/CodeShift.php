@@ -28,6 +28,7 @@ use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollection;
 use Asmblah\PhpCodeShift\Shifter\Shift\Spec\ShiftSpecInterface;
 use Asmblah\PhpCodeShift\Shifter\Shifter;
 use Asmblah\PhpCodeShift\Shifter\ShifterInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use Composer\InstalledVersions;
 
 /**
@@ -104,6 +105,9 @@ class CodeShift implements CodeShiftInterface
      */
     public function install(): void
     {
+        Shared::initialise();
+        StreamWrapperManager::initialise();
+
         $this->shifter->install();
     }
 

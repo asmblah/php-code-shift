@@ -15,6 +15,7 @@ namespace Asmblah\PhpCodeShift;
 
 use Asmblah\PhpCodeShift\Cache\CacheInterface;
 use Asmblah\PhpCodeShift\Cache\Provider\PackageCacheProvider;
+use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
 use InvalidArgumentException;
 use Nytris\Core\Package\PackageContextInterface;
 use Nytris\Core\Package\PackageInterface;
@@ -79,6 +80,7 @@ class Shift implements ShiftInterface
         $cacheLayerFactory = $package->getCacheLayerFactory();
 
         Shared::initialise();
+        StreamWrapperManager::initialise();
 
         Shared::getBootstrap()->install(new PackageCacheProvider($cacheLayerFactory, $packageContext, $package));
     }
