@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Tests\Unit;
 
+use Asmblah\PhpCodeShift\Cache\Adapter\CacheAdapterInterface;
 use Asmblah\PhpCodeShift\Cache\CacheInterface;
+use Asmblah\PhpCodeShift\Cache\Driver\CacheDriverInterface;
+use Asmblah\PhpCodeShift\Cache\Layer\CacheLayerFactoryInterface;
 use Asmblah\PhpCodeShift\Shared;
 use Asmblah\PhpCodeShift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Stream\StreamWrapperManager;
@@ -37,8 +40,6 @@ class ShiftTest extends AbstractTestCase
     {
         Shared::uninitialise();
         StreamWrapperManager::uninitialise();
-        Shared::initialise();
-        StreamWrapperManager::initialise();
 
         $this->shift = new Shift();
     }
@@ -53,6 +54,9 @@ class ShiftTest extends AbstractTestCase
 
     public function testGetCacheFetchesTheCache(): void
     {
+        Shared::initialise();
+        StreamWrapperManager::initialise();
+
         static::assertInstanceOf(CacheInterface::class, $this->shift->getCache());
     }
 
@@ -69,6 +73,22 @@ class ShiftTest extends AbstractTestCase
     public function testGetNameReturnsCorrectVendor(): void
     {
         static::assertSame('nytris', Shift::getVendor());
+    }
+
+    public function testInstallCorrectlyInstallsLibrary(): void
+    {
+        $package = mock(ShiftPackageInterface::class, [
+            'getCacheLayerFactory' => mock(CacheLayerFactoryInterface::class, [
+                'createCacheAdapter' => mock(CacheAdapterInterface::class),
+                'createCacheDriver' => mock(CacheDriverInterface::class),
+            ]),
+        ]);
+        $packageContext = mock(PackageContextInterface::class);
+
+        Shift::install($packageContext, $package);
+
+        static::assertTrue(Shared::getBootstrap()->isInstalled());
+        static::assertTrue(StreamWrapperManager::isInitialised());
     }
 
     public function testInstallRaisesExceptionWhenWrongPackageTypeGiven(): void
