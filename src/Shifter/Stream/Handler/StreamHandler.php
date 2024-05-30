@@ -262,20 +262,17 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int|null $arg2): bool
     {
-        return false;
-
-//        // FIXME: Causes segfault?!
-//        return $this->unwrapped(
-//            fn () => match ($option) {
-//                STREAM_OPTION_BLOCKING => stream_set_blocking($this->wrappedResource, (bool)$arg1),
-//                STREAM_OPTION_READ_TIMEOUT => stream_set_timeout($this->wrappedResource, $arg1, $arg2),
-//                STREAM_OPTION_WRITE_BUFFER => stream_set_write_buffer($this->wrappedResource, $arg1) === 0,
-//                STREAM_OPTION_READ_BUFFER => stream_set_read_buffer($this->wrappedResource, $arg1) === 0,
-//                default => false,
-//            }
-//        );
+        return $this->unwrapped(
+            fn () => match ($option) {
+                STREAM_OPTION_BLOCKING => stream_set_blocking($streamWrapper->getWrappedResource(), (bool)$arg1),
+                STREAM_OPTION_READ_TIMEOUT => stream_set_timeout($streamWrapper->getWrappedResource(), $arg1, $arg2),
+                STREAM_OPTION_WRITE_BUFFER => stream_set_write_buffer($streamWrapper->getWrappedResource(), $arg1) === 0,
+                STREAM_OPTION_READ_BUFFER => stream_set_read_buffer($streamWrapper->getWrappedResource(), $arg1) === 0,
+                default => false,
+            }
+        );
     }
 
     /**

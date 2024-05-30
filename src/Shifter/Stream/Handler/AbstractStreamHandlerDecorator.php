@@ -165,7 +165,7 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
-    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int|null $arg2): bool
     {
         return $this->wrappedStreamHandler->streamSetOption($streamWrapper, $option, $arg1, $arg2);
     }

@@ -122,7 +122,7 @@ interface StreamHandlerInterface
     /**
      * Sets the given stream option.
      */
-    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int $arg2): bool;
+    public function streamSetOption(StreamWrapperInterface $streamWrapper, int $option, int $arg1, int|null $arg2): bool;
 
     /**
      * Performs a stat of the given open stream.

@@ -120,4 +120,18 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
         static::assertFalse($splFileInfo->isFile());
         static::assertFalse($myStreamWrapperClass::$exists);
     }
+
+    public function testStreamOptionsMayBeSet(): void
+    {
+        $path = $this->varPath . '/my.txt';
+        file_put_contents($path, 'My text');
+        $stream = fopen($path, 'rb');
+
+        stream_set_blocking($stream, true);
+        stream_set_timeout($stream, 10);
+        stream_set_write_buffer($stream, 1024);
+        stream_set_read_buffer($stream, 1024);
+
+        static::assertTrue(stream_get_meta_data($stream)['blocked']);
+    }
 }

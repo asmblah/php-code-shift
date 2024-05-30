@@ -244,7 +244,12 @@ class StreamWrapper implements StreamWrapperInterface
         return $this->streamHandler->streamSeek($this, $offset, $whence);
     }
 
-    public function stream_set_option(int $option, int $arg1, int $arg2): bool
+    /**
+     * Changes stream options.
+     *
+     * @see {@link https://www.php.net/manual/en/streamwrapper.stream-set-option.php}
+     */
+    public function stream_set_option(int $option, int $arg1, int|null $arg2): bool
     {
         if (!$this->wrappedResource) {
             return false;
