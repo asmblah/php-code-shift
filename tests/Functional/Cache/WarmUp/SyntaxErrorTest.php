@@ -99,7 +99,7 @@ class SyntaxErrorTest extends AbstractTestCase
 
     public function testCacheWarmUpLogsCorrectlyWhenWarmingFileWithSyntaxError(): void
     {
-        $validCacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/syntaxError/project/src/Your/Gubbins/YourGubbins.php';
+        $validCacheFilePath = $this->packageCachePath . '/php/project/tests/Functional/Fixtures/cache/syntaxError/project/src/Your/Gubbins/YourGubbins.php';
 
         $this->shift->getCache()->warmUp();
 
@@ -151,7 +151,7 @@ class SyntaxErrorTest extends AbstractTestCase
 
     public function testCacheWarmUpFailsToWarmFileWithSyntaxError(): void
     {
-        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/syntaxError/project/src/My/Stuff/MyStuff.php';
+        $cacheFilePath = $this->packageCachePath . '/php/project/tests/Functional/Fixtures/cache/syntaxError/project/src/My/Stuff/MyStuff.php';
 
         try {
             $this->shift->getCache()->warmUp();

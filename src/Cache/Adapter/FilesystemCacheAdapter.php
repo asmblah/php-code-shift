@@ -16,7 +16,6 @@ namespace Asmblah\PhpCodeShift\Cache\Adapter;
 use Asmblah\PhpCodeShift\Exception\FileNotCachedException;
 use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
 use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
-use InvalidArgumentException;
 
 /**
  * Class FilesystemCacheAdapter.
@@ -45,20 +44,15 @@ class FilesystemCacheAdapter implements FilesystemCacheAdapterInterface
         // TODO: Cache length (in this class).
         $projectRootPathLength = strlen($this->projectRootPath);
 
-        if (!str_starts_with($originalPath, $this->projectRootPath)) {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Path "%s" must be inside project root "%s" but is not',
-                    $originalPath,
-                    $this->projectRootPath
-                )
-            );
+        if (str_starts_with($originalPath, $this->projectRootPath)) {
+            // Strip the project path prefix from files in the cache.
+            $cacheRelativeFilePath = 'project/' . substr($originalPath, $projectRootPathLength);
+        } else {
+            // Otherwise for paths outside the project root, use the separate /fsroot/ namespace.
+            $cacheRelativeFilePath = 'fsroot/' . ltrim($originalPath, '/');
         }
 
-        // Strip the project path prefix from files in the cache.
-        $projectRelativeFilePath = substr($originalPath, $projectRootPathLength);
-
-        return $this->baseCachePath . DIRECTORY_SEPARATOR . $projectRelativeFilePath;
+        return $this->baseCachePath . DIRECTORY_SEPARATOR . $cacheRelativeFilePath;
     }
 
     /**

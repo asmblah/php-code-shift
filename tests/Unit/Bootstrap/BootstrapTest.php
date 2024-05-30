@@ -92,6 +92,16 @@ class BootstrapTest extends AbstractTestCase
         static::assertTrue(StreamWrapperManager::isInitialised());
     }
 
+    public function testInstallReinitialisesStreamWrapperManagerIfNeeded(): void
+    {
+        StreamWrapperManager::initialise();
+        $previousStreamHandler = StreamWrapperManager::getStreamHandler();
+
+        $this->bootstrap->install($this->cacheProvider);
+
+        static::assertNotSame($previousStreamHandler, StreamWrapperManager::getStreamHandler());
+    }
+
     public function testInstallRaisesExceptionWhenAlreadyInstalled(): void
     {
         $this->bootstrap->install($this->cacheProvider);

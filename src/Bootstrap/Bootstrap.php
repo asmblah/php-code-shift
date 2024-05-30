@@ -137,6 +137,7 @@ class Bootstrap implements BootstrapInterface
 
         $this->installed = true;
 
+        StreamWrapperManager::uninitialise();
         StreamWrapperManager::initialise();
     }
 

@@ -93,7 +93,7 @@ class CacheWarmUpTest extends AbstractTestCase
 
     public function testCacheWarmUpWarmsCacheCorrectly(): void
     {
-        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
+        $cacheFilePath = $this->packageCachePath . '/php/project/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
         $expectedContents = <<<PHP
 <?php
 
@@ -148,7 +148,7 @@ PHP;
 
     public function testCacheWarmUpAllowsLoggerToBeSetLater(): void
     {
-        $cacheFilePath = $this->packageCachePath . '/php/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
+        $cacheFilePath = $this->packageCachePath . '/php/project/tests/Functional/Fixtures/cache/warmup/project/src/My/Stuff/MyStuff.php';
         $expectedContents = <<<PHP
 <?php
 
