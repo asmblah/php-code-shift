@@ -17,6 +17,7 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
+use RuntimeException;
 
 /**
  * Class StreamHandler.
@@ -329,14 +330,25 @@ class StreamHandler implements StreamHandlerInterface
     public function urlStat(string $path, int $flags): array|false
     {
         // Use lstat(...) for links but stat() for other files.
-        $stat = fn () => $flags & STREAM_URL_STAT_LINK ?
-            lstat($path) :
-            stat($path);
+        $stat = static function () use ($flags, $path) {
+            try {
+                return $flags & STREAM_URL_STAT_LINK ?
+                    lstat($path) :
+                    stat($path);
+            } catch (RuntimeException) {
+                /*
+                 * Stream wrapper must have been invoked by SplFileInfo::__construct(),
+                 * which raises RuntimeExceptions in place of warnings
+                 * such as `RuntimeException: stat(): stat failed for .../non_existent.txt`.
+                 */
+                return false;
+            }
+        };
 
         // Suppress warnings/notices if quiet flag is set.
         return $this->unwrapped(
             $flags & STREAM_URL_STAT_QUIET ?
-                fn () => @$stat() :
+                static fn () => @$stat() :
                 $stat
         );
     }

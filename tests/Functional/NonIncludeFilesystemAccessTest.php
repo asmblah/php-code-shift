@@ -18,6 +18,7 @@ use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\MultipleFilter;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use SplFileInfo;
 
 /**
  * Class NonIncludeFilesystemAccessTest.
@@ -31,7 +32,7 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
 
     public function setUp(): void
     {
-        $this->varPath = dirname(__DIR__, 2) . '/var';
+        $this->varPath = dirname(__DIR__, 2) . '/var/test';
         @mkdir($this->varPath, recursive: true);
 
         $this->codeShift = new CodeShift();
@@ -92,5 +93,31 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
             ],
             $result
         );
+    }
+
+    public function testStatOfNonExistentFileIsHandledCorrectlyBySplFileInfoConstructor(): void
+    {
+        $myStreamWrapperClass = get_class(new class {
+            public static bool $exists = false;
+
+            public function stream_open(
+                string $path,
+                string $mode,
+                int $options,
+                ?string &$openedPath
+            ): bool {
+                $openedPath = $path;
+
+                self::$exists = file_exists($path);
+
+                return true;
+            }
+        });
+        stream_wrapper_register('myproto', $myStreamWrapperClass);
+
+        $splFileInfo = new SplFileInfo(__DIR__ . '/non_existent.txt');
+
+        static::assertFalse($splFileInfo->isFile());
+        static::assertFalse($myStreamWrapperClass::$exists);
     }
 }
