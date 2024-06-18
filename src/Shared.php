@@ -18,9 +18,17 @@ use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
 use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
 use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
 use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
+use Asmblah\PhpCodeShift\Filesystem\Access\AccessResolver;
+use Asmblah\PhpCodeShift\Filesystem\Stat\AclStatResolver;
+use Asmblah\PhpCodeShift\Filesystem\Stat\NativeStatResolver;
+use Asmblah\PhpCodeShift\Filesystem\Stat\StatResolverInterface;
 use Asmblah\PhpCodeShift\Logger\DelegatingLogger;
 use Asmblah\PhpCodeShift\Logger\DelegatingLoggerInterface;
+use Asmblah\PhpCodeShift\Posix\CachingPosix;
+use Asmblah\PhpCodeShift\Posix\Posix;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\Unwrapper;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Util\CallStack;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 use Psr\Log\LoggerInterface;
@@ -38,6 +46,8 @@ class Shared
     private static ?CallStackInterface $callStack;
     private static bool $initialised = false;
     private static ?DelegatingLoggerInterface $logger;
+    private static ?StatResolverInterface $statResolver;
+    private static ?UnwrapperInterface $unwrapper;
 
     /**
      * Initialises PHP Code Shift early on, so that it may be used as early as possible.
@@ -53,6 +63,12 @@ class Shared
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
         self::$logger = new DelegatingLogger();
+        self::$unwrapper = new Unwrapper();
+        self::$statResolver = new AclStatResolver(
+            new NativeStatResolver(self::$unwrapper),
+            new CachingPosix(new Posix()),
+            new AccessResolver(self::$unwrapper)
+        );
     }
 
     /**
@@ -80,6 +96,14 @@ class Shared
     }
 
     /**
+     * Fetches the StatResolver service.
+     */
+    public static function getStatResolver(): StatResolverInterface
+    {
+        return self::$statResolver;
+    }
+
+    /**
      * Fetches the StreamShifter service.
      */
     public static function getStreamShifter(): StreamShifterInterface
@@ -93,6 +117,14 @@ class Shared
         }
 
         return self::$bootstrap->getStreamShifter();
+    }
+
+    /**
+     * Fetches the Unwrapper service.
+     */
+    public static function getUnwrapper(): UnwrapperInterface
+    {
+        return self::$unwrapper;
     }
 
     /**
@@ -117,6 +149,22 @@ class Shared
     public static function setLogger(LoggerInterface $logger): void
     {
         self::$logger->setInnerLogger($logger);
+    }
+
+    /**
+     * Installs a new StatResolver.
+     */
+    public static function setStatResolver(StatResolverInterface $statResolver): void
+    {
+        self::$statResolver = $statResolver;
+    }
+
+    /**
+     * Installs a new Unwrapper.
+     */
+    public static function setUnwrapper(UnwrapperInterface $unwrapper): void
+    {
+        self::$unwrapper = $unwrapper;
     }
 
     /**

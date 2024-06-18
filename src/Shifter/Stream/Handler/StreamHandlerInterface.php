@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 
 /**
  * Interface StreamHandlerInterface.
@@ -23,7 +24,7 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-interface StreamHandlerInterface
+interface StreamHandlerInterface extends UnwrapperInterface
 {
     public const STREAM_OPEN_FOR_INCLUDE = 128;
 
@@ -157,10 +158,4 @@ interface StreamHandlerInterface
      * @return array<mixed>|false
      */
     public function urlStat(string $path, int $flags): array|false;
-
-    /**
-     * Disables the stream wrapper while the given callback is executed,
-     * allowing the native file:// protocol stream wrapper to be used for actual filesystem access.
-     */
-    public function unwrapped(callable $callback): mixed;
 }

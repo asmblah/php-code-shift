@@ -14,7 +14,11 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Tests\Unit;
 
 use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
+use Asmblah\PhpCodeShift\Filesystem\Stat\AclStatResolver;
+use Asmblah\PhpCodeShift\Filesystem\Stat\StatResolverInterface;
 use Asmblah\PhpCodeShift\Shared;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\Unwrapper;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 use Psr\Log\LoggerInterface;
@@ -60,6 +64,20 @@ class SharedTest extends AbstractTestCase
         static::assertInstanceOf(NullLogger::class, Shared::getLogger()->getInnerLogger());
     }
 
+    public function testInitialiseProvidesAclStatResolver(): void
+    {
+        Shared::initialise();
+
+        static::assertInstanceOf(AclStatResolver::class, Shared::getStatResolver());
+    }
+
+    public function testInitialiseProvidesUnwrapper(): void
+    {
+        Shared::initialise();
+
+        static::assertInstanceOf(Unwrapper::class, Shared::getUnwrapper());
+    }
+
     public function testInitialiseDoesNotReinitialise(): void
     {
         Shared::initialise();
@@ -95,5 +113,23 @@ class SharedTest extends AbstractTestCase
         Shared::setLogger($logger);
 
         static::assertSame($logger, Shared::getLogger()->getInnerLogger());
+    }
+
+    public function testSetStatResolverOverridesStatResolver(): void
+    {
+        $statResolver = mock(StatResolverInterface::class);
+
+        Shared::setStatResolver($statResolver);
+
+        static::assertSame($statResolver, Shared::getStatResolver());
+    }
+
+    public function testSetUnwrapperOverridesUnwrapper(): void
+    {
+        $unwrapper = mock(UnwrapperInterface::class);
+
+        Shared::setUnwrapper($unwrapper);
+
+        static::assertSame($unwrapper, Shared::getUnwrapper());
     }
 }

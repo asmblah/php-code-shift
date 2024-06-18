@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Stream\Handler;
 
-use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
+use Asmblah\PhpCodeShift\Filesystem\Stat\StatResolverInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
-use RuntimeException;
 
 /**
  * Class StreamHandler.
@@ -31,7 +31,9 @@ class StreamHandler implements StreamHandlerInterface
 {
     public function __construct(
         private readonly CallStackInterface $callStack,
-        private readonly StreamShifterInterface $streamShifter
+        private readonly StreamShifterInterface $streamShifter,
+        private readonly UnwrapperInterface $unwrapper,
+        private readonly StatResolverInterface $statResolver
     ) {
     }
 
@@ -179,6 +181,7 @@ class StreamHandler implements StreamHandlerInterface
         return $this->unwrapped(function () use ($option, $path, $value) {
             switch ($option) {
                 case STREAM_META_TOUCH:
+                    /** @noinspection PotentialMalwareInspection */
                     return touch($path, $value[0] ?? null, $value[1] ?? null);
                 case STREAM_META_OWNER_NAME:
                 case STREAM_META_OWNER:
@@ -326,28 +329,10 @@ class StreamHandler implements StreamHandlerInterface
      */
     public function urlStat(string $path, int $flags): array|false
     {
-        // Use lstat(...) for links but stat() for other files.
-        $stat = static function () use ($flags, $path) {
-            try {
-                return $flags & STREAM_URL_STAT_LINK ?
-                    lstat($path) :
-                    stat($path);
-            } catch (RuntimeException) {
-                /*
-                 * Stream wrapper must have been invoked by SplFileInfo::__construct(),
-                 * which raises RuntimeExceptions in place of warnings
-                 * such as `RuntimeException: stat(): stat failed for .../non_existent.txt`.
-                 */
-                return false;
-            }
-        };
+        $link = (bool)($flags & STREAM_URL_STAT_LINK);
+        $quiet = (bool)($flags & STREAM_URL_STAT_QUIET);
 
-        // Suppress warnings/notices if quiet flag is set.
-        return $this->unwrapped(
-            $flags & STREAM_URL_STAT_QUIET ?
-                static fn () => @$stat() :
-                $stat
-        );
+        return $this->statResolver->stat($path, link: $link, quiet: $quiet) ?? false;
     }
 
     /**
@@ -355,14 +340,6 @@ class StreamHandler implements StreamHandlerInterface
      */
     public function unwrapped(callable $callback): mixed
     {
-        StreamWrapper::unregister();
-
-        try {
-            return $callback();
-        } finally {
-            // Note that if we do not unregister again first following the above restore,
-            // a segfault will be raised.
-            StreamWrapper::register();
-        }
+        return $this->unwrapper->unwrapped($callback);
     }
 }

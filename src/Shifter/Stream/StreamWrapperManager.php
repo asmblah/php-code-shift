@@ -58,7 +58,12 @@ class StreamWrapperManager
         $shiftCollections = new SplObjectStorage();
 
         self::$shiftCollections = $shiftCollections;
-        self::$streamHandler = new StreamHandler(Shared::getCallStack(), Shared::getStreamShifter());
+        self::$streamHandler = new StreamHandler(
+            Shared::getCallStack(),
+            Shared::getStreamShifter(),
+            Shared::getUnwrapper(),
+            Shared::getStatResolver()
+        );
     }
 
     public static function getShiftSetForPath(string $path): ?ShiftSetInterface
