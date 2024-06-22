@@ -94,7 +94,7 @@ class CachedFileIncludeTest extends AbstractTestCase
 
     public function testFilesOutsideProjectRootAreCachedAndHandledCorrectly(): void
     {
-        $path = realpath(sys_get_temp_dir() . '/my_script.php');
+        $path = realpath(sys_get_temp_dir()) . '/my_script.php';
         file_put_contents($path, '<?php return "Hello!";');
 
         static::assertSame('Goodbye!', require $path);
