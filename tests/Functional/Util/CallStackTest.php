@@ -86,6 +86,7 @@ class CallStackTest extends AbstractTestCase
     {
         $this->codeShift->install();
 
+        /** @noinspection UsingInclusionOnceReturnValueInspection */
         static::assertSame(21, include_once __DIR__ . '/../Fixtures/return_21.php');
         static::assertSame('include_once', $this->customStreamHandler->getNativeFunctionName());
     }
@@ -104,6 +105,7 @@ class CallStackTest extends AbstractTestCase
 
         // Note use of a different module to the include* tests
         // as otherwise for the -_once variant it will not be included a second time.
+        /** @noinspection UsingInclusionOnceReturnValueInspection */
         static::assertSame(22, require_once __DIR__ . '/../Fixtures/return_22.php');
         static::assertSame('require_once', $this->customStreamHandler->getNativeFunctionName());
     }

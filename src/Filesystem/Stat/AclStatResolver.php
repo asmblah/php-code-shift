@@ -59,8 +59,6 @@ class AclStatResolver implements StatResolverInterface
          *
          * Note that due to PHP's stat cache, if this file is stat'ed again before a different file,
          * the modified stat result (with tweaked Unix permissions mode) will be used.
-         *
-         * TODO: Try calling clearstatcache() inside StreamWrapper::__destruct().
          */
         $isExecutable = $this->accessResolver->isExecutable($path);
         $isReadable = $this->accessResolver->isReadable($path);
