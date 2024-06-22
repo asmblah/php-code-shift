@@ -27,6 +27,7 @@ use Asmblah\PhpCodeShift\Filesystem\FilesystemInterface;
 class FilesystemCacheAdapter implements FilesystemCacheAdapterInterface
 {
     private readonly string $projectRootPath;
+    private readonly int $projectRootPathLength;
 
     public function __construct(
         private readonly FilesystemInterface $filesystem,
@@ -34,6 +35,9 @@ class FilesystemCacheAdapter implements FilesystemCacheAdapterInterface
         private readonly string $baseCachePath
     ) {
         $this->projectRootPath = rtrim($projectRootPath, '/') . '/';
+
+        // Cache length to avoid having to calculate on every lookup.
+        $this->projectRootPathLength = strlen($this->projectRootPath);
     }
 
     /**
@@ -41,12 +45,9 @@ class FilesystemCacheAdapter implements FilesystemCacheAdapterInterface
      */
     public function buildCachePath(string $originalPath): string
     {
-        // TODO: Cache length (in this class).
-        $projectRootPathLength = strlen($this->projectRootPath);
-
         if (str_starts_with($originalPath, $this->projectRootPath)) {
             // Strip the project path prefix from files in the cache.
-            $cacheRelativeFilePath = 'project/' . substr($originalPath, $projectRootPathLength);
+            $cacheRelativeFilePath = 'project/' . substr($originalPath, $this->projectRootPathLength);
         } else {
             // Otherwise for paths outside the project root, use the separate /fsroot/ namespace.
             $cacheRelativeFilePath = 'fsroot/' . ltrim($originalPath, '/');
