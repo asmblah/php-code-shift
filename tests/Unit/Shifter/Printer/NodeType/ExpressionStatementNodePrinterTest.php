@@ -6,7 +6,7 @@
  * https://github.com/asmblah/php-code-shift/
  *
  * Released under the MIT license.
- * https://github.com/asmblah/php-code-shift/raw/master/MIT-LICENSE.txt
+ * https://github.com/asmblah/php-code-shift/raw/main/MIT-LICENSE.txt
  */
 
 declare(strict_types=1);

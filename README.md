@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/asmblah/php-code-shift/workflows/CI/badge.svg)](https://github.com/asmblah/php-code-shift/actions?query=workflow%3ACI)
 
-[EXPERIMENTAL] Allows running PHP code to be monkey-patched on the fly.
+Allows running PHP code to be monkey-patched either ahead of time or on the fly.
 
 ## Why?
 To allow stubbing of built-in functions during testing, for example.
