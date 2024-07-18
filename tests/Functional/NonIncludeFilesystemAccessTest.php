@@ -18,6 +18,7 @@ use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\MultipleFilter;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\String\StringLiteralShiftSpec;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
+use ErrorException;
 use SplFileInfo;
 
 /**
@@ -119,6 +120,26 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
 
         static::assertFalse($splFileInfo->isFile());
         static::assertFalse($myStreamWrapperClass::$exists);
+    }
+
+    public function testStatOfNonExistentFileIsHandledCorrectlyByIsFileBuiltin(): void
+    {
+        static::assertFalse(is_file(__DIR__ . '/non_existent.txt'));
+    }
+
+    public function testStatOfNonExistentFileIsHandledCorrectlyByIsFileBuiltinWhenCustomErrorHandlerInstalled(): void
+    {
+        // Force "stat(): stat failed for /Users/dan/work/dan/php-code-shift/tests/Functional/non_existent.txt"
+        // to be thrown if applicable rather than be suppressed by the "@" suppression operator.
+        set_error_handler(static function (int $errorCode, string $errorMessage) {
+            throw new ErrorException($errorMessage, $errorCode);
+        });
+
+        try {
+            static::assertFalse(is_file(__DIR__ . '/non_existent.txt'));
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function testStreamOptionsMayBeSet(): void

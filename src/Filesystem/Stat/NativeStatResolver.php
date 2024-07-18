@@ -35,6 +35,18 @@ class NativeStatResolver implements StatResolverInterface
      */
     public function stat(string $path, bool $link, bool $quiet): array|null
     {
+        /*
+         * This additional call to file_exists(...) should not cause an additional native filesystem stat,
+         * due to PHP's stat cache, which keeps the most recent file status,
+         * and so will be reused below by stat(...)/lstat(...) if the file does exist.
+         *
+         * This prevents the (l)stat call from raising a warning below that is then potentially overridden
+         * by a custom error handler.
+         */
+        if ($quiet && !$this->unwrapper->unwrapped(static fn () => file_exists($path))) {
+            return null;
+        }
+
         // Use lstat(...) for links but stat() for other files.
         $doStat = static function () use ($link, $path) {
             try {
