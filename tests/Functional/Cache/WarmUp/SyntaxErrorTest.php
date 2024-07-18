@@ -103,6 +103,15 @@ class SyntaxErrorTest extends AbstractTestCase
 
         $this->shift->getCache()->warmUp();
 
+        $logs = $this->logger->getLogs();
+        // Don't rely on filesystem order.
+        usort($logs, static function (array $a, array $b) {
+            $pathA = $a[2]['path'] ?? null;
+            $pathB = $b[2]['path'] ?? null;
+
+            return ($pathA === null || $pathB === null) ? 0 : $pathA <=> $pathB;
+        });
+
         static::assertEquals(
             [
                 [
@@ -115,13 +124,6 @@ class SyntaxErrorTest extends AbstractTestCase
                     'Entering directory for Nytris Shift cache warm...',
                     [
                         'directory' => 'tests/Functional/Fixtures/cache/syntaxError/project/src',
-                    ],
-                ],
-                [
-                    'info',
-                    'Nytris Shift successfully warmed cache file',
-                    [
-                        'path' => $this->projectRoot . '/Your/Gubbins/YourGubbins.php',
                     ],
                 ],
                 [
@@ -140,11 +142,18 @@ class SyntaxErrorTest extends AbstractTestCase
                 ],
                 [
                     'info',
+                    'Nytris Shift successfully warmed cache file',
+                    [
+                        'path' => $this->projectRoot . '/Your/Gubbins/YourGubbins.php',
+                    ],
+                ],
+                [
+                    'info',
                     'Nytris Shift cache warmed',
                     [],
                 ],
             ],
-            $this->logger->getLogs()
+            $logs
         );
         static::assertTrue(is_file($validCacheFilePath));
     }
