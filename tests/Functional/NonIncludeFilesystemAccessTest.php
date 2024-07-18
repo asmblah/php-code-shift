@@ -129,7 +129,7 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
 
     public function testStatOfNonExistentFileIsHandledCorrectlyByIsFileBuiltinWhenCustomErrorHandlerInstalled(): void
     {
-        // Force "stat(): stat failed for /Users/dan/work/dan/php-code-shift/tests/Functional/non_existent.txt"
+        // Force "stat(): stat failed for [...]/php-code-shift/tests/Functional/non_existent.txt"
         // to be thrown if applicable rather than be suppressed by the "@" suppression operator.
         set_error_handler(static function (int $errorCode, string $errorMessage) {
             throw new ErrorException($errorMessage, $errorCode);
