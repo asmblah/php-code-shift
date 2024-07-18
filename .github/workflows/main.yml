@@ -19,6 +19,12 @@ jobs:
         with:
           php-version: ${{ matrix.php-version }}
 
+      - name: Install Composer dependencies
+        run: composer install
+
+      - name: Run tests
+        run: vendor/bin/phpunit
+
   phpstan:
     runs-on: ubuntu-latest
 
@@ -34,4 +40,4 @@ jobs:
         run: composer install
 
       - name: Run PHPStan
-        run: vendor/bin/phpstan analyse -c phpstan.neon.dist
+        run: vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=256M
