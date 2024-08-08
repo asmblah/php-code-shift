@@ -18,6 +18,7 @@ use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ClassHook\ClassHookShiftType;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShift;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\DelegatingShiftInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Shift\FunctionHook\FunctionHookShiftType;
@@ -56,6 +57,7 @@ class CodeShift implements CodeShiftInterface
         if ($delegatingShift === null) {
             $delegatingShift = new DelegatingShift();
 
+            $delegatingShift->registerShiftType(new ClassHookShiftType());
             $delegatingShift->registerShiftType(new FunctionHookShiftType());
             $delegatingShift->registerShiftType(new StringLiteralShiftType());
             $delegatingShift->registerShiftType(new TockStatementShiftType());

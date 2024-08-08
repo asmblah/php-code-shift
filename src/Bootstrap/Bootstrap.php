@@ -24,11 +24,14 @@ use Asmblah\PhpCodeShift\Shifter\Printer\ExistingNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NewNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeCollectionPrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ArgNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ClassConstFetchNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\EncapsedStringPartNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\ExpressionStatementNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\FullyQualifiedNameNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\IdentifierNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NameNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NewInstantiationNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StringLiteralNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\SingleNodePrinter;
@@ -94,11 +97,14 @@ class Bootstrap implements BootstrapInterface
         $existingNodePrinter = new ExistingNodePrinter();
 
         $delegatingNewNodePrinter = new DelegatingNewNodePrinter();
+        $delegatingNewNodePrinter->registerNodePrinter(new ArgNodePrinter($nodePrinter));
+        $delegatingNewNodePrinter->registerNodePrinter(new ClassConstFetchNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new EncapsedStringPartNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new ExpressionStatementNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new FullyQualifiedNameNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new IdentifierNodePrinter());
         $delegatingNewNodePrinter->registerNodePrinter(new NameNodePrinter());
+        $delegatingNewNodePrinter->registerNodePrinter(new NewInstantiationNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new StaticCallNodePrinter($nodePrinter));
         $delegatingNewNodePrinter->registerNodePrinter(new StringLiteralNodePrinter());
 

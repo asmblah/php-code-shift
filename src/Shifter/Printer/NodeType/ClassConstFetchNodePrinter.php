@@ -19,14 +19,14 @@ use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNode;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\ClassConstFetch;
 
 /**
- * Class StaticCallNodePrinter.
+ * Class ClassConstFetchNodePrinter.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StaticCallNodePrinter implements NodeTypePrinterInterface
+class ClassConstFetchNodePrinter implements NodeTypePrinterInterface
 {
     public function __construct(
         private readonly NodePrinterInterface $nodePrinter
@@ -38,7 +38,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      */
     public function getNodeClassName(): string
     {
-        return StaticCall::class;
+        return ClassConstFetch::class;
     }
 
     /**
@@ -53,7 +53,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      * Prints the new AST node.
      */
     public function printNode(
-        StaticCall $node,
+        ClassConstFetch $node,
         int $line,
         ModificationContextInterface $modificationContext
     ): PrintedNodeInterface {
@@ -63,12 +63,6 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
         $currentLine = $printedClassNode->getEndLine();
         $printedNameNode = $this->nodePrinter->printNode($node->name, $currentLine, $modificationContext);
         $currentLine = $printedNameNode->getEndLine();
-        $printedArgsNodeCollection = $this->nodePrinter->printNodeCollection(
-            $node->args,
-            $currentLine,
-            $modificationContext
-        );
-        $currentLine = $printedArgsNodeCollection->getEndLine();
 
         $printedClass = $printedClassNode->getCode();
 
@@ -77,9 +71,14 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
             $printedClass = '(' . $printedClass . ')';
         }
 
-        $replacementCode = $printedClass . '::' .
-            $printedNameNode->getCode() .
-            '(' . $printedArgsNodeCollection->join(', ') . ')';
+        $printedName = $printedNameNode->getCode();
+
+        if ($node->name instanceof Expr) {
+            // Name is a complex expression, surround with braces to avoid a syntax error.
+            $printedName = '{' . $printedName . '}';
+        }
+
+        $replacementCode = $printedClass . '::' . $printedName;
 
         return new PrintedNode($replacementCode, $line, $currentLine);
     }

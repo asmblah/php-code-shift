@@ -47,7 +47,7 @@ include __DIR__ . '/substr_test.php';
 `substr_test.php`
 ```php
 <?php
-// NB: substr(...) will be hooked by the shift defined inside HookBuiltinFunctionTest.
+// NB: substr(...) will be hooked by the shift defined inside runner.php.
 $myResult = substr('my string', 1, 4) . ' and ' . substr('your string', 1, 2);
 
 print $myResult;
@@ -57,6 +57,73 @@ The output will be:
 ```
 [substr<y st>] and [substr<ou>]
 ```
+
+### Hooking classes
+
+References to a class may be replaced with references to a different class. This only works
+for statically-referenced classes, i.e. where it is referenced with a bareword, e.g. `new MyClass`.
+
+Dynamic/variable references are not supported, e.g. `new $myClassName` as they can only be resolved at runtime.
+
+Any matching types are _not_ replaced - the replacement class must extend the original class or interface
+in order to pass type checks.
+
+`runner.php`
+
+```php
+<?php
+
+use Asmblah\PhpCodeShift\CodeShift;
+use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
+use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ClassHook\ClassHookShiftSpec;
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$codeShift = new CodeShift();
+
+$codeShift->shift(
+    new ClassHookShiftSpec(
+        'MyClass',
+        'MyReplacementClass'
+    ),
+    new FileFilter(__DIR__ . '/class_test.php')
+);
+
+include __DIR__ . '/class_test.php';
+```
+
+`class_test.php`
+```php
+<?php
+
+class MyClass
+{
+    public function getIt(): string
+    {
+        return 'my original string';
+    }
+}
+
+class MyReplacementClass
+{
+    public function getIt(): string
+    {
+        return 'my replacement string';
+    }
+}
+
+// NB: References to MyClass will be hooked by the shift defined inside runner.php.
+$myObject = new MyClass;
+
+print $myObject->getIt();
+```
+
+The output will be:
+```
+my replacement string
+```
+
+Static method calls (`MyClass::myStaticMethod()`) and class constant fetches (`MyClass:MY_CONST`) are also supported.
 
 ## Limitations
 Functionality is extremely limited at the moment, you may well be better off using one of the alternatives

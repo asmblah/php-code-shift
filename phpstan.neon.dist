@@ -5,6 +5,7 @@ parameters:
     excludePaths:
         # (Intentional) syntax errors must be excluded in this way, by skipping the entire file.
         - tests/Functional/Fixtures/cache/syntaxError/project/src/My/Stuff/MyStuff.php
+        - tests/Functional/Fixtures/hook/class
     level: 6
     paths:
         - src/

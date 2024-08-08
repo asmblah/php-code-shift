@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Printer\NodeType;
 
 use Asmblah\PhpCodeShift\Shifter\Printer\NodePrinterInterface;
-use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\StaticCallNodePrinter;
+use Asmblah\PhpCodeShift\Shifter\Printer\NodeType\NewInstantiationNodePrinter;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
@@ -22,48 +22,39 @@ use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Mockery\MockInterface;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Identifier;
+use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Name;
 
 /**
- * Class StaticCallNodePrinterTest.
+ * Class NewInstantiationNodePrinterTest.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StaticCallNodePrinterTest extends AbstractTestCase
+class NewInstantiationNodePrinterTest extends AbstractTestCase
 {
     private MockInterface&Arg $argument1Node;
     private MockInterface&Arg $argument2Node;
     private MockInterface&Name $classNameNode;
-    private MockInterface&Identifier $methodNameNode;
     private MockInterface&ModificationContextInterface $modificationContext;
-    private StaticCall $node;
+    private New_ $node;
     private MockInterface&NodePrinterInterface $nodePrinter;
     private MockInterface&PrintedNodeCollectionInterface $printedArgsNodeCollection;
     private MockInterface&PrintedNodeInterface $printedClassNameNode;
-    private MockInterface&PrintedNodeInterface $printedMethodNameNode;
-    private StaticCallNodePrinter $printer;
+    private NewInstantiationNodePrinter $printer;
 
     public function setUp(): void
     {
         $this->argument1Node = mock(Arg::class);
         $this->argument2Node = mock(Arg::class);
         $this->classNameNode = mock(Name::class);
-        $this->methodNameNode = mock(Identifier::class);
         $this->modificationContext = mock(ModificationContextInterface::class);
-        $this->node = new StaticCall(
+        $this->node = new New_(
             $this->classNameNode,
-            $this->methodNameNode,
             [$this->argument1Node, $this->argument2Node]
         );
         $this->printedClassNameNode = mock(PrintedNodeInterface::class, [
             'getCode' => '\My\Namespace\MyPrintedClass',
             'getEndLine' => 25,
-        ]);
-        $this->printedMethodNameNode = mock(PrintedNodeInterface::class, [
-            'getCode' => 'myPrintedMethod',
-            'getEndLine' => 30,
         ]);
         $this->printedArgsNodeCollection = mock(PrintedNodeCollectionInterface::class, [
             'getEndLine' => 35,
@@ -74,12 +65,9 @@ class StaticCallNodePrinterTest extends AbstractTestCase
             ->printNode($this->classNameNode, 21, $this->modificationContext)
             ->andReturn($this->printedClassNameNode);
         $this->nodePrinter->allows()
-            ->printNode($this->methodNameNode, 25, $this->modificationContext)
-            ->andReturn($this->printedMethodNameNode);
-        $this->nodePrinter->allows()
             ->printNodeCollection(
                 [$this->argument1Node, $this->argument2Node],
-                30,
+                25,
                 $this->modificationContext
             )
             ->andReturn($this->printedArgsNodeCollection);
@@ -88,12 +76,12 @@ class StaticCallNodePrinterTest extends AbstractTestCase
             ->join(', ')
             ->andReturn('"first arg", "second arg"');
 
-        $this->printer = new StaticCallNodePrinter($this->nodePrinter);
+        $this->printer = new NewInstantiationNodePrinter($this->nodePrinter);
     }
 
     public function testGetNodeClassNameReturnsCorrectClass(): void
     {
-        static::assertSame(StaticCall::class, $this->printer->getNodeClassName());
+        static::assertSame(New_::class, $this->printer->getNodeClassName());
     }
 
     public function testPrintNodeBuildsACorrectPrintedNodeWhenClassIsJustABarewordName(): void
@@ -101,7 +89,7 @@ class StaticCallNodePrinterTest extends AbstractTestCase
         $printedNode = $this->printer->printNode($this->node, 21, $this->modificationContext);
 
         static::assertSame(
-            '\My\Namespace\MyPrintedClass::myPrintedMethod("first arg", "second arg")',
+            'new \My\Namespace\MyPrintedClass("first arg", "second arg")',
             $printedNode->getCode()
         );
         static::assertSame(21, $printedNode->getStartLine());
@@ -119,7 +107,7 @@ class StaticCallNodePrinterTest extends AbstractTestCase
         $printedNode = $this->printer->printNode($this->node, 21, $this->modificationContext);
 
         static::assertSame(
-            '(\My\Namespace\MyPrintedClass)::myPrintedMethod("first arg", "second arg")',
+            'new (\My\Namespace\MyPrintedClass)("first arg", "second arg")',
             $printedNode->getCode()
         );
         static::assertSame(21, $printedNode->getStartLine());

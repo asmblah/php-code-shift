@@ -18,15 +18,14 @@ use Asmblah\PhpCodeShift\Shifter\Printer\NodeTypePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNode;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
-use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Arg;
 
 /**
- * Class StaticCallNodePrinter.
+ * Class ArgNodePrinter.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StaticCallNodePrinter implements NodeTypePrinterInterface
+class ArgNodePrinter implements NodeTypePrinterInterface
 {
     public function __construct(
         private readonly NodePrinterInterface $nodePrinter
@@ -38,7 +37,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      */
     public function getNodeClassName(): string
     {
-        return StaticCall::class;
+        return Arg::class;
     }
 
     /**
@@ -53,33 +52,24 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      * Prints the new AST node.
      */
     public function printNode(
-        StaticCall $node,
+        Arg $node,
         int $line,
         ModificationContextInterface $modificationContext
     ): PrintedNodeInterface {
         $currentLine = $line;
 
-        $printedClassNode = $this->nodePrinter->printNode($node->class, $currentLine, $modificationContext);
-        $currentLine = $printedClassNode->getEndLine();
-        $printedNameNode = $this->nodePrinter->printNode($node->name, $currentLine, $modificationContext);
-        $currentLine = $printedNameNode->getEndLine();
-        $printedArgsNodeCollection = $this->nodePrinter->printNodeCollection(
-            $node->args,
-            $currentLine,
-            $modificationContext
-        );
-        $currentLine = $printedArgsNodeCollection->getEndLine();
-
-        $printedClass = $printedClassNode->getCode();
-
-        if ($node->class instanceof Expr) {
-            // Class is a complex expression, surround with parentheses to avoid a syntax error.
-            $printedClass = '(' . $printedClass . ')';
+        if ($node->name !== null) {
+            $printedNameNode = $this->nodePrinter->printNode($node->name, $currentLine, $modificationContext);
+            $currentLine = $printedNameNode->getEndLine();
+        } else {
+            $printedNameNode = null;
         }
 
-        $replacementCode = $printedClass . '::' .
-            $printedNameNode->getCode() .
-            '(' . $printedArgsNodeCollection->join(', ') . ')';
+        $printedValueNode = $this->nodePrinter->printNode($node->value, $currentLine, $modificationContext);
+        $currentLine = $printedValueNode->getEndLine();
+
+        $replacementCode = ($printedNameNode ? $printedNameNode->getCode() . ': ' : '') .
+            $printedValueNode->getCode();
 
         return new PrintedNode($replacementCode, $line, $currentLine);
     }

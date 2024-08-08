@@ -19,14 +19,14 @@ use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNode;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\Modification\Code\Context\ModificationContextInterface;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\New_;
 
 /**
- * Class StaticCallNodePrinter.
+ * Class NewInstantiationNodePrinter.
  *
  * @author Dan Phillimore <dan@ovms.co>
  */
-class StaticCallNodePrinter implements NodeTypePrinterInterface
+class NewInstantiationNodePrinter implements NodeTypePrinterInterface
 {
     public function __construct(
         private readonly NodePrinterInterface $nodePrinter
@@ -38,7 +38,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      */
     public function getNodeClassName(): string
     {
-        return StaticCall::class;
+        return New_::class;
     }
 
     /**
@@ -53,7 +53,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
      * Prints the new AST node.
      */
     public function printNode(
-        StaticCall $node,
+        New_ $node,
         int $line,
         ModificationContextInterface $modificationContext
     ): PrintedNodeInterface {
@@ -61,8 +61,6 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
 
         $printedClassNode = $this->nodePrinter->printNode($node->class, $currentLine, $modificationContext);
         $currentLine = $printedClassNode->getEndLine();
-        $printedNameNode = $this->nodePrinter->printNode($node->name, $currentLine, $modificationContext);
-        $currentLine = $printedNameNode->getEndLine();
         $printedArgsNodeCollection = $this->nodePrinter->printNodeCollection(
             $node->args,
             $currentLine,
@@ -77,9 +75,7 @@ class StaticCallNodePrinter implements NodeTypePrinterInterface
             $printedClass = '(' . $printedClass . ')';
         }
 
-        $replacementCode = $printedClass . '::' .
-            $printedNameNode->getCode() .
-            '(' . $printedArgsNodeCollection->join(', ') . ')';
+        $replacementCode = 'new ' . $printedClass . '(' . $printedArgsNodeCollection->join(', ') . ')';
 
         return new PrintedNode($replacementCode, $line, $currentLine);
     }
