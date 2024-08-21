@@ -206,7 +206,7 @@ class StreamHandler implements StreamHandlerInterface
         string $mode,
         int $options,
         ?string &$openedPath
-    ) {
+    ): ?array {
         $context = $streamWrapper->getContext();
         $usePath = (bool) ($options & STREAM_USE_PATH);
 
@@ -242,7 +242,7 @@ class StreamHandler implements StreamHandlerInterface
             $openedPath = realpath($path);
         }
 
-        return $resource;
+        return ['resource' => $resource, 'isInclude' => $including];
     }
 
     /**

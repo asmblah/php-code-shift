@@ -80,6 +80,8 @@ class NonIncludeFilesystemAccessTest extends AbstractTestCase
         static::assertSame('<?php return "this is mystring";', $result);
     }
 
+    // See StreamWrapperTest for `->isInclude()` checking.
+
     public function testParseIniFileIsNotAffected(): void
     {
         // May seem irrelevant, but see notes in StreamHandler->streamOpen(...).

@@ -47,8 +47,13 @@ class CallStackTestStreamHandler extends AbstractStreamHandlerDecorator
     /**
      * @inheritDoc
      */
-    public function streamOpen(StreamWrapperInterface $streamWrapper, string $path, string $mode, int $options, ?string &$openedPath)
-    {
+    public function streamOpen(
+        StreamWrapperInterface $streamWrapper,
+        string $path,
+        string $mode,
+        int $options,
+        ?string &$openedPath
+    ): ?array {
         if ($this->nativeFunctionName === null) {
             $this->nativeFunctionName = $this->callStack->getNativeFunctionName();
         }

@@ -100,7 +100,10 @@ interface StreamHandlerInterface extends UnwrapperInterface
     /**
      * Opens the given path for this stream.
      *
-     * @return resource|null
+     * Returns both the opened stream resource and whether this is an include vs. normal file access on success.
+     * Returns null on failure.
+     *
+     * @return array{resource: resource|null, isInclude: bool}|null
      */
     public function streamOpen(
         StreamWrapperInterface $streamWrapper,
@@ -108,7 +111,7 @@ interface StreamHandlerInterface extends UnwrapperInterface
         string $mode,
         int $options,
         ?string &$openedPath
-    );
+    ): ?array;
 
     /**
      * Reads from the given stream.

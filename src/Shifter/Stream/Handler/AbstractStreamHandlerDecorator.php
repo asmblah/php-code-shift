@@ -142,7 +142,7 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
         string $mode,
         int $options,
         ?string &$openedPath
-    ) {
+    ): ?array {
         return $this->wrappedStreamHandler->streamOpen($streamWrapper, $path, $mode, $options, $openedPath);
     }
 

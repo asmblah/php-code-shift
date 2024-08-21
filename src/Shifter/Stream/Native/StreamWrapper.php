@@ -32,6 +32,7 @@ class StreamWrapper implements StreamWrapperInterface
      * @var resource|null
      */
     public $context = null;
+    private bool $isInclude = false;
     private ?string $path = null;
     private StreamHandlerInterface $streamHandler;
     /**
@@ -122,6 +123,14 @@ class StreamWrapper implements StreamWrapperInterface
         }
 
         return $this->wrappedResource;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function isInclude(): bool
+    {
+        return $this->isInclude;
     }
 
     public function mkdir(string $path, int $mode, int $options): bool
@@ -218,7 +227,8 @@ class StreamWrapper implements StreamWrapperInterface
 
         if ($result !== null) {
             $this->path = $path;
-            $this->wrappedResource = $result;
+            $this->isInclude = $result['isInclude'];
+            $this->wrappedResource = $result['resource'];
 
             return true;
         }

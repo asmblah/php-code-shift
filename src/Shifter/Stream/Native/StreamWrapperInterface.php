@@ -48,4 +48,9 @@ interface StreamWrapperInterface
      * @throws NoWrappedResourceAvailableException
      */
     public function getWrappedResource();
+
+    /**
+     * Fetches whether this stream access is for a PHP include.
+     */
+    public function isInclude(): bool;
 }

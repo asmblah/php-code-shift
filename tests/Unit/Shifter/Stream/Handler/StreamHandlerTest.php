@@ -14,7 +14,10 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Stream\Handler;
 
 use Asmblah\PhpCodeShift\Filesystem\Stat\StatResolverInterface;
+use Asmblah\PhpCodeShift\Shift;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandler;
+use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandlerInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
@@ -33,14 +36,24 @@ class StreamHandlerTest extends AbstractTestCase
     private MockInterface&StatResolverInterface $statResolver;
     private StreamHandler $streamHandler;
     private MockInterface&StreamShifterInterface $streamShifter;
+    private MockInterface&StreamWrapperInterface $streamWrapper;
     private MockInterface&UnwrapperInterface $unwrapper;
 
     public function setUp(): void
     {
+        Shift::uninstall();
+
         $this->callStack = mock(CallStackInterface::class);
         $this->statResolver = mock(StatResolverInterface::class);
         $this->streamShifter = mock(StreamShifterInterface::class);
+        $this->streamWrapper = mock(StreamWrapperInterface::class, [
+            'getContext' => null,
+        ]);
         $this->unwrapper = mock(UnwrapperInterface::class);
+
+        $this->unwrapper->allows('unwrapped')
+            ->andReturnUsing(fn (callable $callback) => $callback())
+            ->byDefault();
 
         $this->streamHandler = new StreamHandler(
             $this->callStack,
@@ -48,6 +61,131 @@ class StreamHandlerTest extends AbstractTestCase
             $this->unwrapper,
             $this->statResolver
         );
+    }
+
+    public function tearDown(): void
+    {
+        Shift::uninstall();
+    }
+
+    public function testStreamOpenReturnsCorrectResultForPlainFileRead(): void
+    {
+        $result = $this->streamHandler->streamOpen(
+            $this->streamWrapper,
+            path: __FILE__,
+            mode: 'r',
+            options: 0,
+            openedPath: $openedPath
+        );
+
+        static::assertIsResource($result['resource']);
+        static::assertFalse($result['isInclude']);
+    }
+
+    public function testStreamOpenReturnsCorrectResultForIncludeRead(): void
+    {
+        $this->callStack->allows()
+            ->getNativeFunctionName()
+            ->andReturn('myFunction');
+        $shiftedResource = fopen('php://memory', 'rb+');
+        $this->streamShifter->allows('shift')
+            ->andReturn($shiftedResource);
+
+        $result = $this->streamHandler->streamOpen(
+            $this->streamWrapper,
+            path: __FILE__,
+            mode: 'r',
+            options: StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE,
+            openedPath: $openedPath
+        );
+
+        static::assertSame($shiftedResource, $result['resource']);
+        static::assertTrue($result['isInclude']);
+    }
+
+    public function testStreamOpenOpensUnderlyingStreamForPlainFileReadViaUnwrapper(): void
+    {
+        $underlyingStream = null;
+        $unwrappedStream = fopen('php://memory', 'rb+');
+        $this->unwrapper->allows('unwrapped')
+            ->andReturnUsing(function (callable $callback) use (&$underlyingStream, $unwrappedStream) {
+                $underlyingStream = $callback();
+
+                return $unwrappedStream;
+            });
+
+        $result = $this->streamHandler->streamOpen(
+            $this->streamWrapper,
+            path: __FILE__,
+            mode: 'r',
+            options: 0,
+            openedPath: $openedPath
+        );
+
+        static::assertSame($unwrappedStream, $result['resource']);
+        $metaData = stream_get_meta_data($underlyingStream);
+        static::assertSame('plainfile', $metaData['wrapper_type']);
+    }
+
+    public function testStreamOpenOpensUnderlyingStreamForIncludeReadViaUnwrapper(): void
+    {
+        $underlyingStream = null;
+        $unwrappedStream = fopen('php://memory', 'rb+');
+        $this->unwrapper->allows('unwrapped')
+            ->andReturnUsing(function (callable $callback) use (&$underlyingStream, $unwrappedStream) {
+                $underlyingStream = $callback();
+
+                return $unwrappedStream;
+            });
+        $this->callStack->allows()
+            ->getNativeFunctionName()
+            ->andReturn('myFunction');
+        $shiftedResource = fopen('php://memory', 'rb+');
+        $this->streamShifter->allows()
+            ->shift(__FILE__, $unwrappedStream)
+            ->andReturn($shiftedResource);
+
+        $result = $this->streamHandler->streamOpen(
+            $this->streamWrapper,
+            path: __FILE__,
+            mode: 'r',
+            options: StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE,
+            openedPath: $openedPath
+        );
+
+        static::assertSame($shiftedResource, $result['resource']);
+        $metaData = stream_get_meta_data($underlyingStream);
+        static::assertSame('plainfile', $metaData['wrapper_type']);
+    }
+
+    public function testStreamOpenDoesNotShiftForParseIniFile(): void
+    {
+        $underlyingStream = null;
+        $unwrappedStream = fopen('php://memory', 'rb+');
+        $this->unwrapper->allows('unwrapped')
+            ->andReturnUsing(function (callable $callback) use (&$underlyingStream, $unwrappedStream) {
+                $underlyingStream = $callback();
+
+                return $unwrappedStream;
+            });
+        $this->callStack->allows()
+            ->getNativeFunctionName()
+            ->andReturn('parse_ini_file');
+
+        $this->streamShifter->expects('shift')
+            ->never();
+
+        $result = $this->streamHandler->streamOpen(
+            $this->streamWrapper,
+            path: __FILE__,
+            mode: 'r',
+            options: StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE,
+            openedPath: $openedPath
+        );
+
+        static::assertSame($unwrappedStream, $result['resource']);
+        $metaData = stream_get_meta_data($underlyingStream);
+        static::assertSame('plainfile', $metaData['wrapper_type']);
     }
 
     public function testUnwrappedForwardsOntoUnwrapper(): void
