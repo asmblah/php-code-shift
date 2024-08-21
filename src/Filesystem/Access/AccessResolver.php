@@ -34,7 +34,7 @@ class AccessResolver implements AccessResolverInterface
      */
     public function isExecutable(string $path): bool
     {
-        return $this->unwrapper->unwrapped(fn () => is_executable($path));
+        return $this->unwrapper->unwrapped(static fn () => is_executable($path));
     }
 
     /**
@@ -42,7 +42,7 @@ class AccessResolver implements AccessResolverInterface
      */
     public function isReadable(string $path): bool
     {
-        return $this->unwrapper->unwrapped(fn () => is_readable($path));
+        return $this->unwrapper->unwrapped(static fn () => is_readable($path));
     }
 
     /**
@@ -50,6 +50,6 @@ class AccessResolver implements AccessResolverInterface
      */
     public function isWritable(string $path): bool
     {
-        return $this->unwrapper->unwrapped(fn () => is_writable($path));
+        return $this->unwrapper->unwrapped(static fn () => is_writable($path));
     }
 }

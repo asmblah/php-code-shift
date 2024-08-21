@@ -40,8 +40,8 @@ class NativeStatResolver implements StatResolverInterface
          * due to PHP's stat cache, which keeps the most recent file status,
          * and so will be reused below by stat(...)/lstat(...) if the file does exist.
          *
-         * This prevents the (l)stat call from raising a warning below that is then potentially overridden
-         * by a custom error handler.
+         * This prevents the (l)stat call from raising a warning whose suppression below
+         * is then potentially overridden by a custom error handler.
          */
         if ($quiet && !$this->unwrapper->unwrapped(static fn () => file_exists($path))) {
             return null;

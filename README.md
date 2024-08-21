@@ -1,4 +1,4 @@
-# PHP Code Shift.
+# PHP Code Shift
 
 [![Build Status](https://github.com/asmblah/php-code-shift/workflows/CI/badge.svg)](https://github.com/asmblah/php-code-shift/actions?query=workflow%3ACI)
 
@@ -11,7 +11,7 @@ To allow stubbing of built-in functions during testing, for example.
 Install this package with Composer:
 
 ```shell
-$ composer install asmblah/php-code-shift
+$ composer require asmblah/php-code-shift
 ```
 
 ### Hooking built-in functions
