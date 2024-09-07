@@ -50,6 +50,26 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
+    public function isInclude(int $streamOpenOptions): bool
+    {
+        /*
+         * Include determination logic inspired by Patchwork's.
+         *
+         * @see {@link https://github.com/antecedent/patchwork/blob/master/src/CodeManipulation/Stream.php}
+         */
+        $including = (bool) ($streamOpenOptions & self::STREAM_OPEN_FOR_INCLUDE);
+
+        // In PHP 7 and 8, `parse_ini_file()` also sets STREAM_OPEN_FOR_INCLUDE.
+        if ($including && $this->callStack->getNativeFunctionName() === 'parse_ini_file') {
+            $including = false;
+        }
+
+        return $including;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function openDir(StreamWrapperInterface $streamWrapper, string $path, int $options)
     {
         $context = $streamWrapper->getContext();
@@ -220,17 +240,7 @@ class StreamHandler implements StreamHandlerInterface
             return null;
         }
 
-        /*
-         * Include determination logic inspired by Patchwork's.
-         *
-         * @see {@link https://github.com/antecedent/patchwork/blob/master/src/CodeManipulation/Stream.php}
-         */
-        $including = (bool) ($options & self::STREAM_OPEN_FOR_INCLUDE);
-
-        // In PHP 7 and 8, `parse_ini_file()` also sets STREAM_OPEN_FOR_INCLUDE.
-        if ($including && $this->callStack->getNativeFunctionName() === 'parse_ini_file') {
-            $including = false;
-        }
+        $including = $this->isInclude($options);
 
         if ($including) {
             // Perform any applicable shifts for the included PHP module file,

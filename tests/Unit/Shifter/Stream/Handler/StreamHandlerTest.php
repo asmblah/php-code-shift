@@ -68,6 +68,37 @@ class StreamHandlerTest extends AbstractTestCase
         Shift::uninstall();
     }
 
+    public function testIsIncludeReturnsFalseForPlainFileRead(): void
+    {
+        static::assertFalse($this->streamHandler->isInclude(0));
+    }
+
+    public function testIsIncludeReturnsTrueForIncludeRead(): void
+    {
+        $this->callStack->allows()
+            ->getNativeFunctionName()
+            ->andReturn('myFunction');
+
+        static::assertTrue(
+            $this->streamHandler->isInclude(
+                StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE
+            )
+        );
+    }
+
+    public function testIsIncludeReturnsFalseForParseIniFile(): void
+    {
+        $this->callStack->allows()
+            ->getNativeFunctionName()
+            ->andReturn('parse_ini_file');
+
+        static::assertFalse(
+            $this->streamHandler->isInclude(
+                StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE
+            )
+        );
+    }
+
     public function testStreamOpenReturnsCorrectResultForPlainFileRead(): void
     {
         $result = $this->streamHandler->streamOpen(

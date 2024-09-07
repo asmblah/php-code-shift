@@ -34,6 +34,11 @@ interface StreamHandlerInterface extends UnwrapperInterface
     public function closeDir(StreamWrapperInterface $streamWrapper): bool;
 
     /**
+     * Determines whether the current stream open is for a PHP include.
+     */
+    public function isInclude(int $streamOpenOptions): bool;
+
+    /**
      * Opens the given directory for walking.
      *
      * @return resource|null

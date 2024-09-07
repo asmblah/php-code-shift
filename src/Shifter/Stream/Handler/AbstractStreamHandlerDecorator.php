@@ -40,6 +40,14 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
+    public function isInclude(int $streamOpenOptions): bool
+    {
+        return $this->wrappedStreamHandler->isInclude($streamOpenOptions);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function openDir(StreamWrapperInterface $streamWrapper, string $path, int $options)
     {
         return $this->wrappedStreamHandler->openDir($streamWrapper, $path, $options);
