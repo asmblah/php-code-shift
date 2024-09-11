@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift\Shifter\Parser;
 
-use PhpParser\Lexer\Emulative as EmulativeLexer;
 use PhpParser\Parser;
 use PhpParser\ParserFactory as LibraryParserFactory;
 
@@ -36,19 +35,6 @@ class ParserFactory implements ParserFactoryInterface
      */
     public function createParser(): Parser
     {
-        return $this->libraryParserFactory->create(
-            LibraryParserFactory::PREFER_PHP7,
-            new EmulativeLexer([
-                'usedAttributes' => [
-                    'comments',
-                    'startLine',
-                    'endLine',
-
-                    // For code modifications to use.
-                    'startFilePos',
-                    'endFilePos'
-                ],
-            ])
-        );
+        return $this->libraryParserFactory->createForNewestSupportedVersion();
     }
 }

@@ -16,22 +16,21 @@ namespace Asmblah\PhpCodeShift\Shifter\Printer\NodeType;
 use Asmblah\PhpCodeShift\Shifter\Printer\NodeTypePrinterInterface;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNode;
 use Asmblah\PhpCodeShift\Shifter\Printer\PrintedNodeInterface;
-use PhpParser\Node\Scalar\EncapsedStringPart;
+use PhpParser\Node\InterpolatedStringPart;
 
 /**
- * Class EncapsedStringPartNodePrinter.
+ * Class InterpolatedStringPartNodePrinter.
  *
- * @deprecated Replaced by {@see InterpolatedStringPartNodePrinter}, for nikic/php-parser v5+.
  * @author Dan Phillimore <dan@ovms.co>
  */
-class EncapsedStringPartNodePrinter implements NodeTypePrinterInterface
+class InterpolatedStringPartNodePrinter implements NodeTypePrinterInterface
 {
     /**
      * @inheritDoc
      */
     public function getNodeClassName(): string
     {
-        return EncapsedStringPart::class;
+        return InterpolatedStringPart::class;
     }
 
     /**
@@ -46,7 +45,7 @@ class EncapsedStringPartNodePrinter implements NodeTypePrinterInterface
      * Prints the new AST node.
      */
     public function printNode(
-        EncapsedStringPart $node,
+        InterpolatedStringPart $node,
         int $line
     ): PrintedNodeInterface {
         // Note that we do not enclose the string part in quotes.
