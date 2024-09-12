@@ -26,17 +26,25 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
 class FileFilter implements FileFilterInterface
 {
     /**
-     * @var string[]
+     * @var string
      */
-    private array $patterns;
+    private string $regex;
 
-    public function __construct(string $pattern)
-    {
+    public function __construct(
+        private readonly string $pattern
+    ) {
+        $pattern = preg_quote($pattern, '#');
+
+        // Support both star and globstar.
+        $pattern = str_replace(['\*\*', '\*'], ['[\s\S]*?', '[^/]*?'], $pattern);
+
+        $patterns = [$pattern];
+
         foreach (StreamWrapper::PROTOCOLS as $protocol) {
-            $this->patterns[] = $protocol . '://' . $pattern;
+            $patterns[] = $protocol . '://' . $pattern;
         }
 
-        $this->patterns[] = $pattern;
+        $this->regex = '#\A(?:' . implode('|', $patterns) . ')\Z#';
     }
 
     /**
@@ -44,22 +52,26 @@ class FileFilter implements FileFilterInterface
      */
     public function fileMatches(string $path): bool
     {
-        foreach ($this->patterns as $pattern) {
-            if (fnmatch($pattern, $path)) {
-                return true;
-            }
-        }
-
-        return false;
+        return preg_match($this->regex, $path) === 1;
     }
 
     /**
-     * Fetches the patterns defined for this filter.
+     * Fetches the glob-style pattern defined for this filter.
      *
-     * @return string[]
+     * @return string
      */
-    public function getPatterns(): array
+    public function getPattern(): string
     {
-        return $this->patterns;
+        return $this->pattern;
+    }
+
+    /**
+     * Fetches the regex pattern defined for this filter.
+     *
+     * @return string
+     */
+    public function getRegex(): string
+    {
+        return $this->regex;
     }
 }

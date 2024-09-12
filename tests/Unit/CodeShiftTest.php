@@ -110,15 +110,7 @@ class CodeShiftTest extends AbstractTestCase
             ->andReturnUsing(function (FileFilter $filter) {
                 static::assertMatchesRegularExpression(
                     '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[0]
-                );
-                static::assertMatchesRegularExpression(
-                    '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[1]
-                );
-                static::assertMatchesRegularExpression(
-                    '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[2]
+                    $filter->getPattern()
                 );
             })
             ->once();
@@ -142,15 +134,7 @@ class CodeShiftTest extends AbstractTestCase
             ->andReturnUsing(function (FileFilter $filter) {
                 static::assertMatchesRegularExpression(
                     '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[0]
-                );
-                static::assertMatchesRegularExpression(
-                    '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[1]
-                );
-                static::assertMatchesRegularExpression(
-                    '#/vendor/mockery/mockery/\*\*$#',
-                    $filter->getPatterns()[2]
+                    $filter->getPattern()
                 );
             })
             ->once();

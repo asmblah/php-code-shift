@@ -126,7 +126,7 @@ class CodeShift implements CodeShiftInterface
      */
     public function shift(ShiftSpecInterface $shiftSpec, ?FileFilterInterface $fileFilter = null): void
     {
-        $fileFilter ??= new FileFilter('*.php');
+        $fileFilter ??= new FileFilter('**/*.php');
 
         $this->shifter->addShift(
             new Shift(
