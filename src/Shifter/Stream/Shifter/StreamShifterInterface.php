@@ -30,11 +30,12 @@ interface StreamShifterInterface
     public function getShiftSetShifter(): ShiftSetShifterInterface;
 
     /**
-     * Applies shifts to the given path and its open resource,
-     * returning a new resource with shifts performed if applicable.
+     * Applies shifts to the given path, opening it as a stream if needed,
+     * and returning a new resource with shifts performed if applicable.
      *
-     * @param resource $resource
-     * @return resource
+     * @param string $path
+     * @param callable(): (resource|null) $openStream
+     * @return resource|null
      */
-    public function shift(string $path, $resource);
+    public function shift(string $path, callable $openStream);
 }

@@ -84,7 +84,7 @@ class StreamShifterTest extends AbstractTestCase
 
         static::assertSame(
             $this->resource,
-            $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource)
+            $this->streamShifter->shift('/my/path/to/my_module.php', fn () => $this->resource)
         );
     }
 
@@ -100,7 +100,7 @@ class StreamShifterTest extends AbstractTestCase
 
         static::assertSame(
             $cacheFileResource,
-            $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource)
+            $this->streamShifter->shift('/my/path/to/my_module.php', fn () => $this->resource)
         );
     }
 
@@ -118,7 +118,26 @@ class StreamShifterTest extends AbstractTestCase
             ->shift(Mockery::andAnyOtherArgs())
             ->never();
 
-        $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource);
+        $this->streamShifter->shift('/my/path/to/my_module.php', fn () => $this->resource);
+    }
+
+    public function testShiftDoesNotCallOpenStreamCallbackWhenFilePreviouslyCached(): void
+    {
+        $cacheFileResource = fopen('php://memory', 'wb+');
+        $this->cacheAdapter->allows()
+            ->hasFile('/my/path/to/my_module.php')
+            ->andReturnTrue();
+        $this->cacheAdapter->allows()
+            ->openFile('/my/path/to/my_module.php')
+            ->andReturn($cacheFileResource);
+
+        static::assertSame(
+            $cacheFileResource,
+            $this->streamShifter->shift(
+                '/my/path/to/my_module.php',
+                fn () => $this->fail('Should not attempt to open stream')
+            )
+        );
     }
 
     public function testShiftShiftsViaShiftSetShifter(): void
@@ -132,7 +151,7 @@ class StreamShifterTest extends AbstractTestCase
             ->shift('<?php "my original contents";', $this->resolvedShiftSet)
             ->andReturn('<?php "my new contents";');
 
-        $shiftResult = $this->streamShifter->shift('/my/path/to/my_module.php', $this->resource);
+        $shiftResult = $this->streamShifter->shift('/my/path/to/my_module.php', fn () => $this->resource);
 
         static::assertNotSame($this->resource, $shiftResult, 'A new stream should be returned');
         static::assertSame('<?php "my new contents";', stream_get_contents($shiftResult));
@@ -161,8 +180,8 @@ class StreamShifterTest extends AbstractTestCase
             ->shift('<?php "my original second contents";', $secondShiftSet)
             ->andReturn('<?php "my new second contents";');
 
-        $firstShiftResult = $this->streamShifter->shift('/my/first_module.php', $firstResource);
-        $secondShiftResult = $this->streamShifter->shift('/my/second_module.php', $secondResource);
+        $firstShiftResult = $this->streamShifter->shift('/my/first_module.php', fn () => $firstResource);
+        $secondShiftResult = $this->streamShifter->shift('/my/second_module.php', fn () => $secondResource);
 
         static::assertNotSame($firstResource, $firstShiftResult, 'A new stream should be returned');
         static::assertSame('<?php "my new first contents";', stream_get_contents($firstShiftResult));

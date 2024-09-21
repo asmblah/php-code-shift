@@ -42,14 +42,19 @@ class StreamShifter implements StreamShifterInterface
     }
 
     /**
-     * @param resource $resource
-     * @return resource
+     * @inheritDoc
      */
-    public function shift(string $path, $resource)
+    public function shift(string $path, callable $openStream)
     {
         if ($this->cacheAdapter->hasFile($path)) {
             // Early-out: file has already been shifted, open it from the cache.
             return $this->cacheAdapter->openFile($path);
+        }
+
+        $resource = $openStream();
+
+        if ($resource === null) {
+            return null;
         }
 
         $shiftSet = $this->shiftSetResolver->resolveShiftSet($path);

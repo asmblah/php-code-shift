@@ -23,6 +23,7 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 use Generator;
+use Mockery;
 use Mockery\MockInterface;
 
 /**
@@ -173,7 +174,10 @@ class StreamHandlerTest extends AbstractTestCase
             ->andReturn('myFunction');
         $shiftedResource = fopen('php://memory', 'rb+');
         $this->streamShifter->allows()
-            ->shift(__FILE__, $unwrappedStream)
+            ->shift(
+                __FILE__,
+                Mockery::on(fn ($openStream) => $openStream() === $unwrappedStream)
+            )
             ->andReturn($shiftedResource);
 
         $result = $this->streamHandler->streamOpen(

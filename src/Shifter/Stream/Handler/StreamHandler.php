@@ -230,22 +230,29 @@ class StreamHandler implements StreamHandlerInterface
         $context = $streamWrapper->getContext();
         $usePath = (bool) ($options & STREAM_USE_PATH);
 
-        $resource = $this->unwrapped(
-            fn () => $context ?
-                fopen($path, $mode, $usePath, $context) :
-                fopen($path, $mode, $usePath)
-        );
-
-        if ($resource === false) {
-            return null;
-        }
-
         $including = $this->isInclude($options);
 
-        if ($including) {
-            // Perform any applicable shifts for the included PHP module file,
-            // returning the new underlying resource to use for this open stream.
-            $resource = $this->streamShifter->shift($path, $resource);
+        $getContents = fn () => $this->unwrapped(
+            static function () use ($context, $mode, $path, $usePath) {
+                $stream = $context ?
+                    fopen($path, $mode, $usePath, $context) :
+                    fopen($path, $mode, $usePath);
+
+                return $stream !== false ? $stream : null;
+            }
+        );
+
+        // Perform any applicable shifts for the included PHP module file,
+        // returning the new underlying resource to use for this open stream.
+        $resource = $including ?
+            $this->streamShifter->shift(
+                $path,
+                $getContents
+            ) :
+            $getContents();
+
+        if ($resource === null) {
+            return null;
         }
 
         if ($usePath && $openedPath) {
