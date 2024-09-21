@@ -71,6 +71,18 @@ interface StreamHandlerInterface extends UnwrapperInterface
     public function rmdir(StreamWrapperInterface $streamWrapper, string $path, int $options): bool;
 
     /**
+     * Applies shifts to the given path, opening it as a stream if needed,
+     * and returning a new resource with shifts performed if applicable.
+     *
+     * Returns null if the stream cannot be opened.
+     *
+     * @param string $path
+     * @param callable(): (resource|null) $openStream
+     * @return resource|null
+     */
+    public function shiftFile(string $path, callable $openStream);
+
+    /**
      * Casts this stream to a resource.
      *
      * @return resource

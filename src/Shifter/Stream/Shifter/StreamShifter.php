@@ -54,6 +54,7 @@ class StreamShifter implements StreamShifterInterface
         $resource = $openStream();
 
         if ($resource === null) {
+            // Unable to open the stream.
             return null;
         }
 

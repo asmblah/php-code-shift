@@ -100,6 +100,28 @@ class StreamHandlerTest extends AbstractTestCase
         );
     }
 
+    public function testShiftFileShiftsViaStreamShifter(): void
+    {
+        $originalStream = fopen('php://memory', 'rb+');
+        $shiftedStream = fopen('php://memory', 'rb+');
+
+        $this->streamShifter->expects()
+            ->shift(
+                '/my/path/to/my_file.php',
+                Mockery::on(fn (callable $openStream) => $openStream() === $originalStream)
+            )
+            ->once()
+            ->andReturn($shiftedStream);
+
+        static::assertSame(
+            $shiftedStream,
+            $this->streamHandler->shiftFile(
+                '/my/path/to/my_file.php',
+                fn () => $originalStream
+            )
+        );
+    }
+
     public function testStreamOpenReturnsCorrectResultForPlainFileRead(): void
     {
         $result = $this->streamHandler->streamOpen(

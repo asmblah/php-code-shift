@@ -96,6 +96,14 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
+    public function shiftFile(string $path, callable $openStream)
+    {
+        return $this->wrappedStreamHandler->shiftFile($path, $openStream);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs)
     {
         return $this->wrappedStreamHandler->streamCast($streamWrapper, $castAs);

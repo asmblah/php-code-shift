@@ -153,6 +153,17 @@ class StreamHandler implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
+    public function shiftFile(string $path, callable $openStream)
+    {
+        return $this->streamShifter->shift(
+            $path,
+            $openStream
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function streamCast(StreamWrapperInterface $streamWrapper, int $castAs)
     {
         // TODO: How should $castAs be handled?
@@ -232,7 +243,7 @@ class StreamHandler implements StreamHandlerInterface
 
         $including = $this->isInclude($options);
 
-        $getContents = fn () => $this->unwrapped(
+        $openStream = fn () => $this->unwrapped(
             static function () use ($context, $mode, $path, $usePath) {
                 $stream = $context ?
                     fopen($path, $mode, $usePath, $context) :
@@ -247,9 +258,9 @@ class StreamHandler implements StreamHandlerInterface
         $resource = $including ?
             $this->streamShifter->shift(
                 $path,
-                $getContents
+                $openStream
             ) :
-            $getContents();
+            $openStream();
 
         if ($resource === null) {
             return null;
