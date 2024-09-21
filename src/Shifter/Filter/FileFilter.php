@@ -34,9 +34,15 @@ class FileFilter implements FileFilterInterface
         private readonly string $pattern
     ) {
         $pattern = preg_quote($pattern, '#');
+        $separator = preg_quote(DIRECTORY_SEPARATOR, '#');
 
         // Support both star and globstar.
-        $pattern = str_replace(['\*\*', '\*'], ['[\s\S]*?', '[^/]*?'], $pattern);
+        $pattern = str_replace(['\*\*', '\*'], ['[\s\S]*?', '[^' . $separator . ']*?'], $pattern);
+
+        if (str_ends_with($pattern, DIRECTORY_SEPARATOR)) {
+            // Ensure trailing slash can be omitted for directories.
+            $pattern .= '?';
+        }
 
         $patterns = [$pattern];
 
@@ -52,7 +58,8 @@ class FileFilter implements FileFilterInterface
      */
     public function fileMatches(string $path): bool
     {
-        return preg_match($this->regex, $path) === 1;
+        // Trim to ensure trailing slash can be omitted for directories.
+        return preg_match($this->regex, rtrim($path, DIRECTORY_SEPARATOR)) === 1;
     }
 
     /**

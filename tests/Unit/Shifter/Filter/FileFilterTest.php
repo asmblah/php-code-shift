@@ -120,6 +120,30 @@ class FileFilterTest extends AbstractTestCase
             false,
         ];
 
+        yield 'matching implicit file protocol with trailing slashes on pattern and path' => [
+            '/my/dir/',
+            '/my/dir/',
+            true,
+        ];
+
+        yield 'matching implicit file protocol with trailing slash only on pattern' => [
+            '/my/dir/',
+            '/my/dir',
+            true,
+        ];
+
+        yield 'matching implicit file protocol with trailing slash only on path' => [
+            '/my/dir',
+            '/my/dir/',
+            true,
+        ];
+
+        yield 'matching implicit file protocol with trailing slashes on neither pattern nor path' => [
+            '/my/dir',
+            '/my/dir',
+            true,
+        ];
+
         yield 'matching explicit file protocol' => [
             '/my/path/*/it.txt',
             'file:///my/path/to/it.txt',
