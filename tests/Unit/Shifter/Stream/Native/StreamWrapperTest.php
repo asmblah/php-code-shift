@@ -76,6 +76,7 @@ class StreamWrapperTest extends AbstractTestCase
         );
         static::assertTrue($this->streamWrapper->isInclude());
         static::assertSame($stream, $this->streamWrapper->getWrappedResource());
+        static::assertSame('rb', $this->streamWrapper->getOpenMode());
         static::assertSame('/my/path/to/my_module.php', $this->streamWrapper->getOpenPath());
         static::assertSame('/my/path/to/my_module.php', $openedPath);
     }
@@ -111,6 +112,7 @@ class StreamWrapperTest extends AbstractTestCase
         );
         static::assertFalse($this->streamWrapper->isInclude());
         static::assertSame($stream, $this->streamWrapper->getWrappedResource());
+        static::assertSame('rb', $this->streamWrapper->getOpenMode());
         static::assertSame('/my/path/to/my_module.php', $this->streamWrapper->getOpenPath());
         static::assertSame('/my/path/to/my_module.php', $openedPath);
     }

@@ -33,6 +33,7 @@ class StreamWrapper implements StreamWrapperInterface
      */
     public $context = null;
     private bool $isInclude = false;
+    private ?string $mode = null;
     private ?string $path = null;
     private StreamHandlerInterface $streamHandler;
     /**
@@ -99,6 +100,18 @@ class StreamWrapper implements StreamWrapperInterface
     public function getContext()
     {
         return $this->context;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getOpenMode(): string
+    {
+        if ($this->mode === null) {
+            throw new NoWrappedResourceAvailableException();
+        }
+
+        return $this->mode;
     }
 
     /**
@@ -226,6 +239,7 @@ class StreamWrapper implements StreamWrapperInterface
         $result = $this->streamHandler->streamOpen($this, $path, $mode, $options, $openedPath);
 
         if ($result !== null) {
+            $this->mode = $mode;
             $this->path = $path;
             $this->isInclude = $result['isInclude'];
             $this->wrappedResource = $result['resource'];

@@ -34,6 +34,13 @@ interface StreamWrapperInterface
     public function getContext();
 
     /**
+     * Fetches the mode that the stream is currently open in.
+     *
+     * @throws NoWrappedResourceAvailableException
+     */
+    public function getOpenMode(): string;
+
+    /**
      * Fetches the path that is currently open.
      *
      * @throws NoWrappedResourceAvailableException
