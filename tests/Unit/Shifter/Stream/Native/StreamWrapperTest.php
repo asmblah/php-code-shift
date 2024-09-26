@@ -45,6 +45,44 @@ class StreamWrapperTest extends AbstractTestCase
         StreamWrapperManager::uninitialise();
     }
 
+    public function testIsRegisteredReturnsTrueWhenRegistered(): void
+    {
+        if (!StreamWrapper::isRegistered()) {
+            StreamWrapper::register();
+        }
+
+        static::assertTrue(StreamWrapper::isRegistered());
+    }
+
+    public function testIsRegisteredReturnsFalseWhenNotRegistered(): void
+    {
+        if (StreamWrapper::isRegistered()) {
+            StreamWrapper::unregister();
+        }
+
+        static::assertFalse(StreamWrapper::isRegistered());
+    }
+
+    public function testRegisterDoesNotThrowWhenAlreadyRegistered(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        try {
+            StreamWrapper::register();
+            StreamWrapper::register();
+        } finally {
+            StreamWrapper::unregister();
+        }
+    }
+
+    public function testUnregisterDoesNotThrowWhenAlreadyUnregistered(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        StreamWrapper::unregister();
+        StreamWrapper::unregister();
+    }
+
     public function testStreamOpenCorrectlyOpensAnIncludeFileReadStream(): void
     {
         $stream = fopen('php://memory', 'rb+');

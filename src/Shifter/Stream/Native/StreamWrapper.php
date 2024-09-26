@@ -33,6 +33,7 @@ class StreamWrapper implements StreamWrapperInterface
      */
     public $context = null;
     private bool $isInclude = false;
+    private static bool $isRegistered = false;
     private ?string $mode = null;
     private ?string $path = null;
     private StreamHandlerInterface $streamHandler;
@@ -146,17 +147,34 @@ class StreamWrapper implements StreamWrapperInterface
         return $this->isInclude;
     }
 
+    /**
+     * Determines whether the stream wrapper has been registered.
+     */
+    public static function isRegistered(): bool
+    {
+        return self::$isRegistered;
+    }
+
     public function mkdir(string $path, int $mode, int $options): bool
     {
         return $this->streamHandler->mkdir($this, $path, $mode, $options);
     }
 
+    /**
+     * Registers this stream wrapper.
+     */
     public static function register(): void
     {
+        if (self::$isRegistered) {
+            return;
+        }
+
         foreach (static::PROTOCOLS as $protocol) {
             stream_wrapper_unregister($protocol);
             stream_wrapper_register($protocol, static::class);
         }
+
+        self::$isRegistered = true;
     }
 
     public function rename(string $fromPath, string $toPath): bool
@@ -330,12 +348,21 @@ class StreamWrapper implements StreamWrapperInterface
         return $this->streamHandler->unlink($this, $path);
     }
 
+    /**
+     * Unregisters this stream wrapper if it has been registered.
+     */
     public static function unregister(): void
     {
+        if (!self::$isRegistered) {
+            return;
+        }
+
         foreach (static::PROTOCOLS as $protocol) {
             // Suppress notice "stream_wrapper_restore(): file:// was never changed, nothing to restore".
             @stream_wrapper_restore($protocol);
         }
+
+        self::$isRegistered = false;
     }
 
     /**
