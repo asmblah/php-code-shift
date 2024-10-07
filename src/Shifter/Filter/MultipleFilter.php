@@ -22,11 +22,22 @@ namespace Asmblah\PhpCodeShift\Shifter\Filter;
  */
 class MultipleFilter implements FileFilterInterface
 {
+    private readonly string $regex;
+    private readonly string $regexPart;
+
     /**
      * @param FileFilterInterface[] $subFilters
      */
     public function __construct(private readonly array $subFilters)
     {
+        $this->regexPart = implode(
+            '|',
+            array_map(
+                static fn (FileFilterInterface $filter) => $filter->getRegexPart(),
+                $subFilters
+            )
+        );
+        $this->regex = '#\A(?:' . $this->regexPart . ')\Z#';
     }
 
     /**
@@ -34,12 +45,25 @@ class MultipleFilter implements FileFilterInterface
      */
     public function fileMatches(string $path): bool
     {
-        foreach ($this->subFilters as $subFilter) {
-            if ($subFilter->fileMatches($path)) {
-                return true;
-            }
-        }
+        // Trim to ensure trailing slash can be omitted for directories.
+        return preg_match($this->regex, rtrim($path, DIRECTORY_SEPARATOR)) === 1;
+    }
 
-        return false;
+    /**
+     * @inheritDoc
+     */
+    public function getRegexPart(): string
+    {
+        return $this->regexPart;
+    }
+
+    /**
+     * Fetches the filters that make up this alternation.
+     *
+     * @return FileFilterInterface[]
+     */
+    public function getSubFilters(): array
+    {
+        return $this->subFilters;
     }
 }

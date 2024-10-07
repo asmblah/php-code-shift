@@ -16,7 +16,6 @@ namespace Asmblah\PhpCodeShift\Tests\Unit\Shifter\Filter;
 use Asmblah\PhpCodeShift\Shifter\Filter\ExceptFilter;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilterInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
-use Mockery\MockInterface;
 
 /**
  * Class ExceptFilterTest.
@@ -25,66 +24,89 @@ use Mockery\MockInterface;
  */
 class ExceptFilterTest extends AbstractTestCase
 {
-    private MockInterface&FileFilterInterface $exceptSubFilter;
-    private ExceptFilter $filter;
-    private MockInterface&FileFilterInterface $onlySubFilter;
-
-    public function setUp(): void
+    public function testFileMatchesReturnsTrueWhenExceptSubFilterDoesNotMatchAndOnlySubFilterMatches(): void
     {
-        $this->exceptSubFilter = mock(FileFilterInterface::class);
-        $this->onlySubFilter = mock(FileFilterInterface::class);
-
-        $this->filter = new ExceptFilter(
-            $this->exceptSubFilter,
-            $this->onlySubFilter
+        $filter = new ExceptFilter(
+            exceptFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/not\/in\/here\/[\s\S]*?',
+            ]),
+            onlyFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+            ])
         );
+
+        static::assertTrue($filter->fileMatches('/my/path/to/my_file.txt'));
     }
 
-    public function testFileMatchesReturnsTrueWhenExceptSubFilterReturnsFalseAndOnlySubFilterReturnsTrue(): void
+    public function testFileMatchesReturnsFalseWhenBothExceptSubFilterMatchesAndOnlySubFilterMatches(): void
     {
-        $this->exceptSubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnFalse();
-        $this->onlySubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnTrue();
+        $filter = new ExceptFilter(
+            exceptFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+            ]),
+            onlyFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+            ])
+        );
 
-        static::assertTrue($this->filter->fileMatches('/my/path/to/my_file.txt'));
+        static::assertFalse($filter->fileMatches('/my/path/to/my_file.txt'));
     }
 
-    public function testFileMatchesReturnsFalseWhenExceptSubFilterReturnsTrueAndOnlySubFilterReturnsTrue(): void
+    public function testFileMatchesReturnsFalseWhenExceptSubFilterMatchesAndOnlySubFilterDoesNotMatch(): void
     {
-        $this->exceptSubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnTrue();
-        $this->onlySubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnTrue();
+        $filter = new ExceptFilter(
+            exceptFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+            ]),
+            onlyFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/not\/my\/path\/to\/my_file\.txt',
+            ])
+        );
 
-        static::assertFalse($this->filter->fileMatches('/my/path/to/my_file.txt'));
-    }
-
-    public function testFileMatchesReturnsFalseWhenExceptSubFilterReturnsTrueAndOnlySubFilterReturnsFalse(): void
-    {
-        $this->exceptSubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnTrue();
-        $this->onlySubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnFalse();
-
-        static::assertFalse($this->filter->fileMatches('/my/path/to/my_file.txt'));
+        static::assertFalse($filter->fileMatches('/my/path/to/my_file.txt'));
     }
 
     public function testFileMatchesReturnsFalseWhenExceptSubFilterReturnsFalseAndOnlySubFilterReturnsFalse(): void
     {
-        $this->exceptSubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnFalse();
-        $this->onlySubFilter->allows()
-            ->fileMatches('/my/path/to/my_file.txt')
-            ->andReturnFalse();
+        $filter = new ExceptFilter(
+            exceptFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/not\/my\/path\/to\/my_file\.txt',
+            ]),
+            onlyFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/not\/my\/path\/to\/my_file\.txt',
+            ])
+        );
 
-        static::assertFalse($this->filter->fileMatches('/my/path/to/my_file.txt'));
+        static::assertFalse($filter->fileMatches('/my/path/to/my_file.txt'));
+    }
+
+    public function testGetExceptFilterFetchesTheExceptFilter(): void
+    {
+        $exceptFilter = mock(FileFilterInterface::class, [
+            'getRegexPart' => '\/not\/in\/here\/[\s\S]*?',
+        ]);
+        $filter = new ExceptFilter(
+            exceptFilter: $exceptFilter,
+            onlyFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+            ])
+        );
+
+        static::assertSame($exceptFilter, $filter->getExceptFilter());
+    }
+
+    public function testGetOnlyFilterFetchesTheOnlyFilter(): void
+    {
+        $onlyFilter = mock(FileFilterInterface::class, [
+            'getRegexPart' => '\/my\/path\/to\/my_file\.txt',
+        ]);
+        $filter = new ExceptFilter(
+            exceptFilter: mock(FileFilterInterface::class, [
+                'getRegexPart' => '\/not\/in\/here\/[\s\S]*?',
+            ]),
+            onlyFilter: $onlyFilter
+        );
+
+        static::assertSame($onlyFilter, $filter->getOnlyFilter());
     }
 }
