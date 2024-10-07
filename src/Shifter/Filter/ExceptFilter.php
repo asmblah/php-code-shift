@@ -24,10 +24,15 @@ namespace Asmblah\PhpCodeShift\Shifter\Filter;
  */
 class ExceptFilter implements FileFilterInterface
 {
+    private readonly string $regex;
+    private readonly string $regexPart;
+
     public function __construct(
         private readonly FileFilterInterface $exceptFilter,
         private readonly FileFilterInterface $onlyFilter
     ) {
+        $this->regexPart = '(?!' . $exceptFilter->getRegexPart() . ')(?:' . $onlyFilter->getRegexPart() . ')';
+        $this->regex = '#\A(?:' . $this->regexPart . ')\Z#';
     }
 
     /**
@@ -35,10 +40,31 @@ class ExceptFilter implements FileFilterInterface
      */
     public function fileMatches(string $path): bool
     {
-        if ($this->exceptFilter->fileMatches($path)) {
-            return false;
-        }
+        // Trim to ensure trailing slash can be omitted for directories.
+        return preg_match($this->regex, rtrim($path, DIRECTORY_SEPARATOR)) === 1;
+    }
 
-        return $this->onlyFilter->fileMatches($path);
+    /**
+     * Fetches the filter to exclude.
+     */
+    public function getExceptFilter(): FileFilterInterface
+    {
+        return $this->exceptFilter;
+    }
+
+    /**
+     * Fetches the filter to include only matches of, and only when the except filter is not matched.
+     */
+    public function getOnlyFilter(): FileFilterInterface
+    {
+        return $this->onlyFilter;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRegexPart(): string
+    {
+        return $this->regexPart;
     }
 }

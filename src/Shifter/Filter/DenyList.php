@@ -26,6 +26,8 @@ class DenyList implements DenyListInterface
      * @var FileFilterInterface[]
      */
     private array $filters = [];
+    private string $regex = '#(?!)#';
+    private string $regexPart = '(?!)';
 
     /**
      * @inheritDoc
@@ -33,6 +35,20 @@ class DenyList implements DenyListInterface
     public function addFilter(FileFilterInterface $filter): void
     {
         $this->filters[] = $filter;
+
+        /*
+         * Re-build the regex every time the filter list is changed,
+         * so that we don't pay the cost of branching on every match call
+         * (which will usually be far higher than the number of changes).
+         */
+        $this->regexPart = implode(
+            '|',
+            array_map(
+                static fn (FileFilterInterface $filter) => $filter->getRegexPart(),
+                $this->filters
+            )
+        );
+        $this->regex = '#\A(?:' . $this->regexPart . ')\Z#';
     }
 
     /**
@@ -41,6 +57,8 @@ class DenyList implements DenyListInterface
     public function clear(): void
     {
         $this->filters = [];
+        $this->regex = '#(?!)#';
+        $this->regexPart = '(?!)';
     }
 
     /**
@@ -48,12 +66,25 @@ class DenyList implements DenyListInterface
      */
     public function fileMatches(string $path): bool
     {
-        foreach ($this->filters as $filter) {
-            if ($filter->fileMatches($path)) {
-                return true;
-            }
-        }
+        // Trim to ensure trailing slash can be omitted for directories.
+        return preg_match($this->regex, rtrim($path, DIRECTORY_SEPARATOR)) === 1;
+    }
 
-        return false;
+    /**
+     * Fetches the filters added to the deny list.
+     *
+     * @return FileFilterInterface[]
+     */
+    public function getFilters(): array
+    {
+        return $this->filters;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRegexPart(): string
+    {
+        return $this->regexPart;
     }
 }

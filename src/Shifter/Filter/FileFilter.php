@@ -25,10 +25,8 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
  */
 class FileFilter implements FileFilterInterface
 {
-    /**
-     * @var string
-     */
-    private string $regex;
+    private readonly string $regex;
+    private readonly string $regexPart;
 
     public function __construct(
         private readonly string $pattern
@@ -50,7 +48,8 @@ class FileFilter implements FileFilterInterface
             $patterns[] = $protocol . '://' . $pattern;
         }
 
-        $this->regex = '#\A(?:' . implode('|', $patterns) . ')\Z#';
+        $this->regexPart = implode('|', $patterns);
+        $this->regex = '#\A(?:' . $this->regexPart . ')\Z#';
     }
 
     /**
@@ -80,5 +79,13 @@ class FileFilter implements FileFilterInterface
     public function getRegex(): string
     {
         return $this->regex;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getRegexPart(): string
+    {
+        return $this->regexPart;
     }
 }

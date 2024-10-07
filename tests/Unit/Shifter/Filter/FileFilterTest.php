@@ -185,4 +185,14 @@ class FileFilterTest extends AbstractTestCase
             $filter->getRegex()
         );
     }
+
+    public function testGetRegexPartFetchesTheRawRegexPart(): void
+    {
+        $filter = new FileFilter('my/**/patt*ern');
+
+        static::assertSame(
+            'my/[\s\S]*?/patt[^/]*?ern|file://my/[\s\S]*?/patt[^/]*?ern|phar://my/[\s\S]*?/patt[^/]*?ern',
+            $filter->getRegexPart()
+        );
+    }
 }

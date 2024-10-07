@@ -26,4 +26,10 @@ interface FileFilterInterface
      * Determines whether the given file path matches this filter.
      */
     public function fileMatches(string $path): bool;
+
+    /**
+     * Fetches a regex for matching this filter without delimiters etc.,
+     * suitable to be built into a larger single regex.
+     */
+    public function getRegexPart(): string;
 }
