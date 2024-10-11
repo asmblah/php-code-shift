@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Tests\Unit;
 
 use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
+use Asmblah\PhpCodeShift\Environment\EnvironmentInterface;
 use Asmblah\PhpCodeShift\Filesystem\Stat\AclStatResolver;
 use Asmblah\PhpCodeShift\Filesystem\Stat\StatResolverInterface;
 use Asmblah\PhpCodeShift\Shared;
@@ -55,6 +56,13 @@ class SharedTest extends AbstractTestCase
         Shared::initialise();
 
         static::assertInstanceOf(CallStackInterface::class, Shared::getCallStack());
+    }
+
+    public function testInitialiseProvidesEnvironment(): void
+    {
+        Shared::initialise();
+
+        static::assertInstanceOf(EnvironmentInterface::class, Shared::getEnvironment());
     }
 
     public function testInitialiseProvidesNullLogger(): void
@@ -104,6 +112,15 @@ class SharedTest extends AbstractTestCase
         Shared::setCallStack($callStack);
 
         static::assertSame($callStack, Shared::getCallStack());
+    }
+
+    public function testSetEnvironmentOverridesEnvironment(): void
+    {
+        $environment = mock(EnvironmentInterface::class);
+
+        Shared::setEnvironment($environment);
+
+        static::assertSame($environment, Shared::getEnvironment());
     }
 
     public function testSetLoggerOverridesLogger(): void

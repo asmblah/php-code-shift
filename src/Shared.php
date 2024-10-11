@@ -18,6 +18,8 @@ use Asmblah\PhpCodeShift\Bootstrap\BootstrapInterface;
 use Asmblah\PhpCodeShift\Cache\Adapter\MemoryCacheAdapter;
 use Asmblah\PhpCodeShift\Cache\Driver\NullCacheDriver;
 use Asmblah\PhpCodeShift\Cache\Provider\StandaloneCacheProvider;
+use Asmblah\PhpCodeShift\Environment\Environment;
+use Asmblah\PhpCodeShift\Environment\EnvironmentInterface;
 use Asmblah\PhpCodeShift\Filesystem\Access\AccessResolver;
 use Asmblah\PhpCodeShift\Filesystem\Stat\AclStatResolver;
 use Asmblah\PhpCodeShift\Filesystem\Stat\NativeStatResolver;
@@ -44,6 +46,7 @@ class Shared
 {
     private static ?BootstrapInterface $bootstrap;
     private static ?CallStackInterface $callStack;
+    private static ?EnvironmentInterface $environment;
     private static bool $initialised = false;
     private static ?DelegatingLoggerInterface $logger;
     private static ?StatResolverInterface $statResolver;
@@ -62,6 +65,7 @@ class Shared
 
         self::$bootstrap = new Bootstrap();
         self::$callStack = new CallStack();
+        self::$environment = new Environment();
         self::$logger = new DelegatingLogger();
         self::$unwrapper = new Unwrapper();
         self::$statResolver = new AclStatResolver(
@@ -85,6 +89,14 @@ class Shared
     public static function getCallStack(): CallStackInterface
     {
         return self::$callStack;
+    }
+
+    /**
+     * Fetches the Environment service.
+     */
+    public static function getEnvironment(): EnvironmentInterface
+    {
+        return self::$environment;
     }
 
     /**
@@ -144,6 +156,14 @@ class Shared
     }
 
     /**
+     * Installs a new Environment.
+     */
+    public static function setEnvironment(EnvironmentInterface $environment): void
+    {
+        self::$environment = $environment;
+    }
+
+    /**
      * Installs a new Logger.
      */
     public static function setLogger(LoggerInterface $logger): void
@@ -174,6 +194,7 @@ class Shared
     {
         self::$bootstrap = null;
         self::$callStack = null;
+        self::$environment = null;
         self::$initialised = false;
     }
 }

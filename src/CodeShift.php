@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Asmblah\PhpCodeShift;
 
+use Asmblah\PhpCodeShift\Filesystem\Canonicaliser;
+use Asmblah\PhpCodeShift\Filesystem\CanonicaliserInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyList;
 use Asmblah\PhpCodeShift\Shifter\Filter\DenyListInterface;
 use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
@@ -41,14 +43,16 @@ use Composer\InstalledVersions;
  */
 class CodeShift implements CodeShiftInterface
 {
-    private DelegatingShiftInterface $delegatingShift;
-    private DenyListInterface $denyList;
-    private ShifterInterface $shifter;
+    private readonly CanonicaliserInterface $canonicaliser;
+    private readonly DelegatingShiftInterface $delegatingShift;
+    private readonly DenyListInterface $denyList;
+    private readonly ShifterInterface $shifter;
 
     public function __construct(
         ?DenyListInterface $denyList = null,
         ?DelegatingShiftInterface $delegatingShift = null,
-        ?ShifterInterface $shifter = null
+        ?ShifterInterface $shifter = null,
+        ?CanonicaliserInterface $canonicaliser = null
     ) {
         if ($denyList === null) {
             $denyList = new DenyList();
@@ -63,6 +67,7 @@ class CodeShift implements CodeShiftInterface
             $delegatingShift->registerShiftType(new TockStatementShiftType());
         }
 
+        $this->canonicaliser = $canonicaliser ?? new Canonicaliser(Shared::getEnvironment());
         $this->delegatingShift = $delegatingShift;
         $this->denyList = $denyList;
         $this->shifter = $shifter ?? new Shifter(new ShiftCollection());
@@ -87,7 +92,7 @@ class CodeShift implements CodeShiftInterface
      */
     public function excludeComposerPackage(string $packageName): void
     {
-        $packageInstallPath = realpath(InstalledVersions::getInstallPath($packageName));
+        $packageInstallPath = $this->canonicaliser->canonicalise(InstalledVersions::getInstallPath($packageName));
 
         $this->deny(new FileFilter($packageInstallPath . '/**'));
     }
