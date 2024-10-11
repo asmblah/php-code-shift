@@ -14,10 +14,13 @@ declare(strict_types=1);
 namespace Asmblah\PhpCodeShift\Filesystem;
 
 use Asmblah\PhpCodeShift\Exception\NativeFileOperationFailedException;
+use Closure;
+use Exception;
 use FilesystemIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use RuntimeException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
@@ -30,9 +33,13 @@ use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
  */
 class Filesystem implements FilesystemInterface
 {
+    private readonly Closure $filePutContents;
+
     public function __construct(
-        private readonly SymfonyFilesystem $symfonyFilesystem
+        private readonly SymfonyFilesystem $symfonyFilesystem,
+        ?Closure $filePutContents = null
     ) {
+        $this->filePutContents = $filePutContents ?? file_put_contents(...);
     }
 
     /**
@@ -114,17 +121,39 @@ class Filesystem implements FilesystemInterface
     public function writeFile(string $path, string $contents): void
     {
         try {
-            $this->symfonyFilesystem->dumpFile($path, $contents);
-        } catch (IOException $exception) {
-            throw new NativeFileOperationFailedException(
-                sprintf(
-                    'Failed to write %d byte(s) to file path: "%s"',
+            $this->symfonyFilesystem->mkdir(dirname($path));
+
+            // Symfony Filesystem ->dumpFile(...) does not always set permissions correctly when ACLs are at play.
+            if (($this->filePutContents)($path, $contents) === false) {
+                $this->raiseIoWriteFailure(
+                    $path,
                     strlen($contents),
-                    $path
-                ),
-                0,
-                $exception
-            );
+                    new RuntimeException('Failed to write file contents')
+                );
+            }
+        } catch (IOException $exception) {
+            $this->raiseIoWriteFailure($path, strlen($contents), $exception);
         }
+    }
+
+    /**
+     * Raises an exception following a failure during file write.
+     *
+     * @param string $path
+     * @param int $contentsLength
+     * @param Exception $exception
+     * @throws NativeFileOperationFailedException
+     */
+    private function raiseIoWriteFailure(string $path, int $contentsLength, Exception $exception): void
+    {
+        throw new NativeFileOperationFailedException(
+            sprintf(
+                'Failed to write %d byte(s) to file path: "%s"',
+                $contentsLength,
+                $path
+            ),
+            0,
+            $exception
+        );
     }
 }

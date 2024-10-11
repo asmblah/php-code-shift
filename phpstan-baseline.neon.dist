@@ -1,0 +1,11 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Call to an undefined method Mockery\\\\ExpectationInterface\\|Mockery\\\\ExpectsHigherOrderMessage\\:\\:filePutContents\\(\\)\\.$#"
+			count: 1
+			path: tests/Unit/Filesystem/FilesystemTest.php
+
+		-
+			message: "#^Call to an undefined method Mockery\\\\ExpectationInterface\\|Mockery\\\\HigherOrderMessage\\|Mockery\\\\MockInterface\\:\\:filePutContents\\(\\)\\.$#"
+			count: 1
+			path: tests/Unit/Filesystem/FilesystemTest.php
