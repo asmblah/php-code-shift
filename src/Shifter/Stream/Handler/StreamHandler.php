@@ -18,6 +18,7 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapperInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Shifter\StreamShifterInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
+use LogicException;
 
 /**
  * Class StreamHandler.
@@ -93,6 +94,14 @@ class StreamHandler implements StreamHandlerInterface
     public function readDir(StreamWrapperInterface $streamWrapper): string|false
     {
         return readdir($streamWrapper->getWrappedResource());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function redecorate(StreamHandlerInterface $newWrappedStreamHandler): void
+    {
+        throw new LogicException('The base StreamHandler does not decorate');
     }
 
     /**

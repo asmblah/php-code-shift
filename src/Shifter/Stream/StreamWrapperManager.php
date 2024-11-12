@@ -17,9 +17,12 @@ use Asmblah\PhpCodeShift\Shared;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftCollectionInterface;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSet;
 use Asmblah\PhpCodeShift\Shifter\Shift\ShiftSetInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Handler\Registration\RegistrantInterface;
+use Asmblah\PhpCodeShift\Shifter\Stream\Handler\Registration\RegistrationInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandler;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\StreamHandlerInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Native\StreamWrapper;
+use LogicException;
 use SplObjectStorage;
 
 /**
@@ -33,11 +36,16 @@ use SplObjectStorage;
 class StreamWrapperManager
 {
     private static bool $initialised = false;
+    private static ?StreamHandlerInterface $previousStreamHandler = null;
     /**
      * @var SplObjectStorage<ShiftCollectionInterface, mixed>
      */
     private static ?SplObjectStorage $shiftCollections;
-    private static ?StreamHandlerInterface $streamHandler;
+    private static ?StreamHandlerInterface $streamHandler = null;
+    /**
+     * @var RegistrationInterface<StreamHandlerInterface>|null
+     */
+    private static ?RegistrationInterface $streamHandlerRegistration = null;
 
     /**
      * Initialises the stream wrapper mechanism.
@@ -109,10 +117,40 @@ class StreamWrapperManager
     }
 
     /**
+     * Replaces the current stream handler with a new one,
+     * usually chained with the previous one.
+     *
+     * @template T of StreamHandlerInterface
+     * @param RegistrantInterface<T> $registrant
+     * @return RegistrationInterface<T>
+     */
+    public static function registerStreamHandler(RegistrantInterface $registrant): RegistrationInterface
+    {
+        if (self::$streamHandler === null) {
+            throw new LogicException('Not initialised');
+        }
+
+        $registration = $registrant->registerStreamHandler(
+            currentStreamHandler: self::$streamHandler,
+            previousStreamHandler: self::$previousStreamHandler
+        );
+
+        if (self::$streamHandlerRegistration !== null) {
+            $registration = self::$streamHandlerRegistration->replace($registration);
+        }
+
+        $registration->register();
+        self::$streamHandlerRegistration = $registration;
+
+        return $registration;
+    }
+
+    /**
      * Installs a new StreamHandler to be used for new streams created after this point.
      */
     public static function setStreamHandler(StreamHandlerInterface $streamHandler): void
     {
+        self::$previousStreamHandler = self::$streamHandler;
         self::$streamHandler = $streamHandler;
     }
 
@@ -121,8 +159,10 @@ class StreamWrapperManager
      */
     public static function uninitialise(): void
     {
+        self::$previousStreamHandler = null;
         self::$shiftCollections = null;
         self::$streamHandler = null;
+        self::$streamHandlerRegistration = null;
 
         StreamWrapper::unregister();
 
