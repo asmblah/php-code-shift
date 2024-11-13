@@ -143,8 +143,6 @@ declare(strict_types=1);
 namespace My\App;
 
 use Asmblah\PhpCodeShift\CodeShift;
-use Asmblah\PhpCodeShift\Shifter\Filter\FileFilter;
-use Asmblah\PhpCodeShift\Shifter\Shift\Shift\ClassHook\ClassHookShiftSpec;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\AbstractStreamHandlerDecorator;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\Registration\RegistrantInterface;
 use Asmblah\PhpCodeShift\Shifter\Stream\Handler\Registration\Registration;

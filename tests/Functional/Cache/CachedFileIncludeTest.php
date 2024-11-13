@@ -52,7 +52,7 @@ class CachedFileIncludeTest extends AbstractTestCase
 
         $this->logger = new TestLogger();
         $this->projectRoot = $projectRoot . '/' . $this->relativeProjectRoot;
-        $this->packageCachePath = $projectRoot . '/var/cache/include/project/nytris/shift';
+        $this->packageCachePath = $projectRoot . '/var/test/cache/include/project/nytris/shift';
         $this->packageContext = mock(PackageContextInterface::class, [
             'getPackageCachePath' => $this->packageCachePath,
             'resolveProjectRoot' => $projectRoot,
