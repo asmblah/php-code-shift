@@ -64,6 +64,14 @@ abstract class AbstractStreamHandlerDecorator implements StreamHandlerInterface
     /**
      * @inheritDoc
      */
+    public function redecorate(StreamHandlerInterface $newWrappedStreamHandler): void
+    {
+        $this->wrappedStreamHandler = $newWrappedStreamHandler;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function rewindDir(StreamWrapperInterface $streamWrapper): bool
     {
         return $this->wrappedStreamHandler->rewindDir($streamWrapper);

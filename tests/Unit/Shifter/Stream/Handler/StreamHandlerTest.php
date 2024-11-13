@@ -23,6 +23,7 @@ use Asmblah\PhpCodeShift\Shifter\Stream\Unwrapper\UnwrapperInterface;
 use Asmblah\PhpCodeShift\Tests\AbstractTestCase;
 use Asmblah\PhpCodeShift\Util\CallStackInterface;
 use Generator;
+use LogicException;
 use Mockery;
 use Mockery\MockInterface;
 
@@ -98,6 +99,16 @@ class StreamHandlerTest extends AbstractTestCase
                 StreamHandlerInterface::STREAM_OPEN_FOR_INCLUDE
             )
         );
+    }
+
+    public function testRedecorateRaisesException(): void
+    {
+        $newWrappedStreamHandler = mock(StreamHandlerInterface::class);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('The base StreamHandler does not decorate');
+
+        $this->streamHandler->redecorate($newWrappedStreamHandler);
     }
 
     public function testShiftFileShiftsViaStreamShifter(): void

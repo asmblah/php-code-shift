@@ -51,6 +51,11 @@ interface StreamHandlerInterface extends UnwrapperInterface
     public function readDir(StreamWrapperInterface $streamWrapper): string|false;
 
     /**
+     * Replaces the stream handler that this one wraps with a different one.
+     */
+    public function redecorate(StreamHandlerInterface $newWrappedStreamHandler): void;
+
+    /**
      * Rewinds the directory walk to the beginning.
      */
     public function rewindDir(StreamWrapperInterface $streamWrapper): bool;
